@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Midlife Brotherhood</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#0a0a0a;--dark:#111111;--card:#181818;--card2:#1f1f1f;
+  --red:#cc2200;--red-light:#e63300;--grey:#888;--grey-light:#aaa;
+  --white:#f0f0f0;--border:#2a2a2a;
+}
+body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;margin:0;min-height:100vh;}
+input,textarea,button{font-family:'Barlow',sans-serif;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { createClient } = supabase;
+const SUPABASE_URL = 'https://alhclifwyzkahvtfqyjx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Zi3BzsuSxlAZkV4yjHLA7Q_y9gMsWRd';
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const { useState, useEffect } = React;
+
+const styles = `
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:var(--black);padding:2rem;}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:var(--white);text-align:center;line-height:1;margin-bottom:4px;}
+.login-sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:5px;color:var(--red);text-transform:uppercase;text-align:center;margin-bottom:40px;}
+.login-card{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:36px 40px;width:100%;max-width:380px;}
+.login-card label{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey-light);margin-bottom:8px;}
+.login-card input{width:100%;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:15px;padding:12px 14px;margin-bottom:20px;outline:none;transition:border-color 0.2s;}
+.login-card input:focus{border-color:var(--red);}
+.login-btn{width:100%;background:var(--red);border:none;border-radius:3px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;padding:13px;cursor:pointer;transition:background 0.2s;margin-top:4px;}
+.login-btn:hover{background:var(--red-light);}
+.login-footer{font-size:12px;color:var(--grey);text-align:center;margin-top:20px;}
+.error-msg{font-size:13px;color:var(--red-light);text-align:center;margin-bottom:12px;}
+.top-nav{background:var(--dark);border-bottom:0.5px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--white);}
+.nav-logo span{color:var(--red);}
+.nav-avatar{width:34px;height:34px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer;}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:var(--dark);border-top:0.5px solid var(--border);display:flex;height:60px;z-index:100;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1px;text-transform:uppercase;transition:color 0.2s;border:none;background:none;}
+.tab-item i{font-size:22px;}
+.tab-item.active{color:var(--red);}
+.main-content{padding:20px 20px 80px;max-width:680px;margin:0 auto;}
+.greeting-day{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
+.greeting-name{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px;color:var(--white);line-height:1;margin-bottom:24px;}
+.motivation-card{background:var(--red);border-radius:4px;padding:20px 24px;margin-bottom:16px;position:relative;overflow:hidden;}
+.motivation-card::before{content:'"';position:absolute;right:16px;top:-10px;font-family:'Bebas Neue',sans-serif;font-size:120px;color:rgba(0,0,0,0.15);line-height:1;}
+.motivation-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:8px;}
+.motivation-text{font-family:'Barlow',sans-serif;font-size:16px;font-weight:500;color:#fff;line-height:1.5;max-width:90%;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:14px 12px;text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--white);line-height:1;}
+.stat-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-top:2px;}
+.section-header{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:10px;margin-top:20px;}
+.pillar-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px;}
+.pillar-item{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color 0.2s;}
+.pillar-item.checked{border-color:var(--red);}
+.pillar-icon{width:32px;height:32px;border-radius:3px;background:#222;display:flex;align-items:center;justify-content:center;color:var(--grey);font-size:16px;flex-shrink:0;transition:background 0.2s,color 0.2s;}
+.pillar-item.checked .pillar-icon{background:var(--red);color:#fff;}
+.pillar-name{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--grey-light);}
+.pillar-item.checked .pillar-name{color:var(--white);}
+.win-input-area{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:8px;}
+.win-input-area textarea{width:100%;background:transparent;border:none;color:var(--white);font-size:14px;resize:none;outline:none;min-height:60px;}
+.submit-btn{background:var(--red);border:none;border-radius:3px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:8px 18px;cursor:pointer;float:right;margin-top:8px;}
+.feed-item{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:8px;}
+.feed-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.feed-avatar{width:32px;height:32px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;color:var(--grey-light);flex-shrink:0;}
+.feed-name{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:1px;color:var(--white);}
+.feed-time{font-size:11px;color:var(--grey);}
+.feed-text{font-size:14px;color:var(--grey-light);line-height:1.5;}
+.feed-badge{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;background:rgba(204,34,0,0.15);color:var(--red-light);border-radius:2px;padding:2px 8px;margin-left:auto;}
+.meal-item{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;}
+.meal-time{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--red);min-width:60px;}
+.meal-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;color:var(--white);}
+.meal-macros{font-size:12px;color:var(--grey);margin-top:2px;}
+.meal-cals{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--grey);}
+.progress-card{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:16px 18px;margin-bottom:8px;}
+.progress-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:6px;}
+.progress-val{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--white);line-height:1;}
+.progress-unit{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:var(--grey);margin-left:4px;}
+.progress-bar-track{height:4px;background:#222;border-radius:2px;margin-top:10px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--red);border-radius:2px;}
+.progress-sub{font-size:12px;color:var(--grey);margin-top:6px;}
+.message-item{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:8px;}
+.message-from{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
+.message-from.mine{color:var(--grey-light);}
+.message-text{font-size:14px;color:var(--grey-light);line-height:1.5;}
+.message-reply{display:flex;gap:8px;margin-top:16px;}
+.message-reply input{flex:1;background:#111;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:13px;padding:8px 12px;outline:none;}
+.message-reply input:focus{border-color:var(--red);}
+.send-btn{background:var(--red);border:none;border-radius:3px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:8px 16px;cursor:pointer;}
+.loading{text-align:center;color:var(--grey);padding:40px;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;font-size:13px;}
+`;
+
+const MOTIVATIONS = [
+  "You didn't come this far to fold when it gets uncomfortable. That discomfort is the work.",
+  "Most men quit right before the breakthrough. Don't be most men.",
+  "The body keeps the score. Feed it right, move it hard, rest it well.",
+  "Nobody's coming to save you. That's actually great news.",
+  "Discipline is just doing the thing you said you'd do when you don't feel like it.",
+  "Your future self is watching what you do today.",
+  "The comeback is always louder than the setback.",
+  "Strong body. Clear mind. Solid purpose. In that order.",
+  "You're not too old. You just haven't decided yet.",
+  "Every day you check in is a day you chose yourself."
+];
+
+function getToday() {
+  return new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
+
+function timeAgo(ts) {
+  const diff = (Date.now() - new Date(ts)) / 1000;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleLogin() {
+    if (!email || !password) { setError('Enter your email and access code.'); return; }
+    setLoading(true); setError('');
+    const { error: err } = await sb.auth.signInWithPassword({ email, password });
+    if (err) { setError('Access denied. Check your credentials.'); setLoading(false); }
+  }
+
+  return (
+    <div className="login-screen">
+      <div className="login-logo">Midlife Brotherhood</div>
+      <div className="login-sub">Members Only</div>
+      <div className="login-card">
+        {error && <div className="error-msg">{error}</div>}
+        <label>Email</label>
+        <input type="email" placeholder="your@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
+        <label>Access Code</label>
+        <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
+        <button className="login-btn" onClick={handleLogin} disabled={loading}>{loading ? 'Checking...' : 'Enter the Brotherhood'}</button>
+        <div className="login-footer">Access granted by Coach Billy Mayfield only.</div>
+      </div>
+    </div>
+  );
+}
+
+function HomePage({ user, profile }) {
+  const [pillars, setPillars] = useState({body:false,mind:false,purpose:false,finances:false,relationships:false,brotherhood:false});
+  const [win, setWin] = useState('');
+  const [saved, setSaved] = useState(false);
+  const motivation = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
+  const initials = profile?.name ? profile.name.split(' ').map(n=>n[0]).join('').toUpperCase() : '?';
+
+  function togglePillar(key) { setPillars(p=>({...p,[key]:!p[key]})); }
+
+  async function saveCheckin() {
+    if (!win.trim()) return;
+    await sb.from('checkins').insert({
+      user_id: user.id, win_log: win,
+      body: pillars.body, mind: pillars.mind, purpose: pillars.purpose,
+      finances: pillars.finances, relationships: pillars.relationships, brotherhood: pillars.brotherhood
+    });
+    setWin(''); setSaved(true);
+    setTimeout(()=>setSaved(false), 2000);
+  }
+
+  const checkedCount = Object.values(pillars).filter(Boolean).length;
+
+  return (
+    <div>
+      <div className="greeting-day">{getToday()}</div>
+      <div className="greeting-name">Welcome back, {profile?.name?.split(' ')[0] || 'Brother'}.</div>
+      <div className="motivation-card">
+        <div className="motivation-label">Today's Word</div>
+        <div className="motivation-text">{motivation}</div>
+      </div>
+      <div className="stats-row">
+        <div className="stat-card"><div className="stat-num">{checkedCount}</div><div className="stat-label">Pillars Today</div></div>
+        <div className="stat-card"><div className="stat-num">{profile?.streak || 0}</div><div className="stat-label">Day Streak</div></div>
+        <div className="stat-card"><div className="stat-num">{profile?.adherence || 0}%</div><div className="stat-label">Adherence</div></div>
+      </div>
+      <div className="section-header">Six Pillars — Today's Check-in</div>
+      <div className="pillar-grid">
+        {[['body','ti-barbell','Body'],['mind','ti-brain','Mind'],['purpose','ti-flame','Purpose'],['finances','ti-coin','Finances'],['relationships','ti-users','Relationships'],['brotherhood','ti-shield','Brotherhood']].map(([key,icon,label])=>(
+          <div key={key} className={`pillar-item${pillars[key]?' checked':''}`} onClick={()=>togglePillar(key)}>
+            <div className="pillar-icon"><i className={`ti ${icon}`}/></div>
+            <div className="pillar-name">{label}</div>
+          </div>
+        ))}
+      </div>
+      <div className="section-header">Today's Win</div>
+      <div className="win-input-area">
+        <textarea placeholder="What did you do right today? One thing. Write it down." value={win} onChange={e=>setWin(e.target.value)}/>
+        <button className="submit-btn" onClick={saveCheckin}>{saved ? 'Logged.' : 'Log It'}</button>
+        <div style={{clear:'both'}}/>
+      </div>
+    </div>
+  );
+}
+
+function PackPage({ user, profile }) {
+  const [posts, setPosts] = useState([]);
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(()=>{ loadPosts(); },[]);
+
+  async function loadPosts() {
+    const { data } = await sb.from('pack_feed').select('*').order('created_at',{ascending:false}).limit(20);
+    setPosts(data || []); setLoading(false);
+  }
+
+  async function submitPost() {
+    if (!content.trim()) return;
+    const name = profile?.name || 'Brother';
+    const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase();
+    await sb.from('pack_feed').insert({ user_id: user.id, name, initials, content });
+    setContent(''); loadPosts();
+  }
+
+  return (
+    <div>
+      <div className="greeting-day">The Pack</div>
+      <div className="greeting-name">Brotherhood Feed</div>
+      {loading && <div className="loading">Loading the pack...</div>}
+      {posts.map(p=>(
+        <div key={p.id} className="feed-item">
+          <div className="feed-header">
+            <div className="feed-avatar">{p.initials}</div>
+            <div style={{flex:1}}>
+              <div className="feed-name">{p.name}</div>
+              <div className="feed-time">{timeAgo(p.created_at)}</div>
+            </div>
+            {p.badge && <div className="feed-badge">{p.badge}</div>}
+          </div>
+          <div className="feed-text">{p.content}</div>
+        </div>
+      ))}
+      {!loading && posts.length === 0 && <div className="loading">No posts yet. Be the first.</div>}
+      <div className="win-input-area" style={{marginTop:16}}>
+        <textarea placeholder="Post a win, a struggle, or a check-in. The pack is watching." value={content} onChange={e=>setContent(e.target.value)}/>
+        <button className="submit-btn" onClick={submitPost}>Post</button>
+        <div style={{clear:'both'}}/>
+      </div>
+    </div>
+  );
+}
+
+function MealsPage({ user }) {
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(()=>{ loadMeals(); },[]);
+
+  async function loadMeals() {
+    const { data } = await sb.from('meal_plans').select('*').eq('user_id', user.id).order('meal_time');
+    setMeals(data || []); setLoading(false);
+  }
+
+  const totals = meals.reduce((acc,m)=>({ cal: acc.cal+(m.calories||0), pro: acc.pro+(m.protein||0), carb: acc.carb+(m.carbs||0) }),{cal:0,pro:0,carb:0});
+
+  return (
+    <div>
+      <div className="greeting-day">Your Plan</div>
+      <div className="greeting-name">Today's Meals</div>
+      {meals.length > 0 && (
+        <div className="stats-row" style={{marginBottom:16}}>
+          <div className="stat-card"><div className="stat-num">{totals.cal}</div><div className="stat-label">Calories</div></div>
+          <div className="stat-card"><div className="stat-num">{totals.pro}g</div><div className="stat-label">Protein</div></div>
+          <div className="stat-card"><div className="stat-num">{totals.carb}g</div><div className="stat-label">Carbs</div></div>
+        </div>
+      )}
+      {loading && <div className="loading">Loading your plan...</div>}
+      {!loading && meals.length === 0 && <div className="loading">No meal plan assigned yet. Coach Billy will add yours soon.</div>}
+      {meals.map(m=>(
+        <div key={m.id} className="meal-item">
+          <div className="meal-time">{m.meal_time}</div>
+          <div style={{flex:1}}>
+            <div className="meal-name">{m.meal_name}</div>
+            <div className="meal-macros">{m.protein}g protein · {m.carbs}g carbs · {m.fat}g fat</div>
+          </div>
+          <div className="meal-cals">{m.calories}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProgressPage({ user, profile }) {
+  const pct = (cur, start, goal) => {
+    if (!start || !goal || start === goal) return 0;
+    return Math.min(100, Math.round(((start - cur) / (start - goal)) * 100));
+  };
+
+  return (
+    <div>
+      <div className="greeting-day">Your Journey</div>
+      <div className="greeting-name">Progress Tracker</div>
+      <div className="progress-card">
+        <div className="progress-label">Current Weight</div>
+        <div><span className="progress-val">{profile?.current_weight || '--'}</span><span className="progress-unit">lbs</span></div>
+        <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${pct(profile?.current_weight, profile?.start_weight, profile?.goal_weight)}%`}}/></div>
+        <div className="progress-sub">Goal: {profile?.goal_weight || '--'} lbs · Started: {profile?.start_weight || '--'} lbs</div>
+      </div>
+      <div className="progress-card">
+        <div className="progress-label">Day Number</div>
+        <div><span className="progress-val">{profile?.day_number || 1}</span><span className="progress-unit">of 90</span></div>
+        <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${Math.round(((profile?.day_number||1)/90)*100)}%`}}/></div>
+        <div className="progress-sub">{90-(profile?.day_number||1)} days remaining in your current program</div>
+      </div>
+      <div className="progress-card">
+        <div className="progress-label">Adherence Rate</div>
+        <div><span className="progress-val">{profile?.adherence || 0}</span><span className="progress-unit">%</span></div>
+        <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${profile?.adherence||0}%`}}/></div>
+        <div className="progress-sub">Based on check-ins completed</div>
+      </div>
+    </div>
+  );
+}
+
+function CoachPage({ user, profile }) {
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(()=>{ loadMessages(); },[]);
+
+  async function loadMessages() {
+    const { data } = await sb.from('messages').select('*')
+      .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
+      .order('created_at', {ascending:true}).limit(30);
+    setMessages(data || []); setLoading(false);
+  }
+
+  async function sendMessage() {
+    if (!text.trim()) return;
+    await sb.from('messages').insert({ sender_id: user.id, content: text, from_coach: false });
+    setText(''); loadMessages();
+  }
+
+  return (
+    <div>
+      <div className="greeting-day">Direct Line</div>
+      <div className="greeting-name">Coach Billy</div>
+      {loading && <div className="loading">Loading messages...</div>}
+      {!loading && messages.length === 0 && <div className="loading">No messages yet. Say something.</div>}
+      {messages.map(m=>(
+        <div key={m.id} className="message-item">
+          <div className={`message-from${m.from_coach?'':' mine'}`}>{m.from_coach ? 'Coach Billy' : (profile?.name?.split(' ')[0] || 'You')}</div>
+          <div className="message-text">{m.content}</div>
+        </div>
+      ))}
+      <div className="message-reply">
+        <input type="text" placeholder="Message Coach Billy..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMessage()}/>
+        <button className="send-btn" onClick={sendMessage}>Send</button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [tab, setTab] = useState('home');
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(()=>{
+    sb.auth.getSession().then(({data:{session}})=>{ setSession(session); setAuthLoading(false); });
+    sb.auth.onAuthStateChange((_,session)=>{ setSession(session); setAuthLoading(false); });
+  },[]);
+
+  useEffect(()=>{
+    if (session?.user) loadProfile(session.user.id);
+  },[session]);
+
+  async function loadProfile(uid) {
+    const { data } = await sb.from('profiles').select('*').eq('id', uid).single();
+    setProfile(data);
+  }
+
+  async function handleLogout() {
+    await sb.auth.signOut();
+    setSession(null); setProfile(null);
+  }
+
+  if (authLoading) return <div className="loading" style={{paddingTop:80}}>Loading...</div>;
+  if (!session) return <LoginScreen onLogin={()=>{}} />;
+
+  const user = session.user;
+  const initials = profile?.name ? profile.name.split(' ').map(n=>n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
+
+  const tabs = [
+    {key:'home', icon:'ti-home', label:'Home'},
+    {key:'pack', icon:'ti-shield', label:'Pack'},
+    {key:'meals', icon:'ti-tool-kitchen-2', label:'Meals'},
+    {key:'progress', icon:'ti-chart-line', label:'Progress'},
+    {key:'coach', icon:'ti-message', label:'Coach'},
+  ];
+
+  return (
+    <div style={{background:'var(--black)',minHeight:'100vh'}}>
+      <div className="top-nav">
+        <div className="nav-logo">MB<span>.</span></div>
+        <div style={{display:'flex',alignItems:'center',gap:16}}>
+          <div className="nav-avatar" onClick={handleLogout} title="Tap to sign out">{initials}</div>
+        </div>
+      </div>
+      <div className="main-content">
+        {tab==='home' && <HomePage user={user} profile={profile}/>}
+        {tab==='pack' && <PackPage user={user} profile={profile}/>}
+        {tab==='meals' && <MealsPage user={user}/>}
+        {tab==='progress' && <ProgressPage user={user} profile={profile}/>}
+        {tab==='coach' && <CoachPage user={user} profile={profile}/>}
+      </div>
+      <div className="tab-bar">
+        {tabs.map(t=>(
+          <button key={t.key} className={`tab-item${tab===t.key?' active':''}`} onClick={()=>setTab(t.key)}>
+            <i className={`ti ${t.icon}`}/>
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const styleEl = document.createElement('style');
+styleEl.textContent = styles;
+document.head.appendChild(styleEl);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
