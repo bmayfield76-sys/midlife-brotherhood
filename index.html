@@ -372,15 +372,59 @@ function CoachPage({ user, profile }) {
   );
 }
 
+function ResetPasswordScreen() {
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [msg, setMsg] = useState('');
+  const [done, setDone] = useState(false);
+
+  async function handleReset() {
+    if (!password || password !== confirm) { setMsg('Passwords do not match.'); return; }
+    if (password.length < 6) { setMsg('Password must be at least 6 characters.'); return; }
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) { setMsg('Something went wrong. Try again.'); }
+    else { setDone(true); setMsg('Password set. You can now log in.'); }
+  }
+
+  return (
+    <div className="login-screen">
+      <div className="login-logo">Midlife Brotherhood</div>
+      <div className="login-sub">Set Your Password</div>
+      <div className="login-card">
+        {msg && <div className={done ? 'error-msg' : 'error-msg'} style={{color: done ? '#22a84e' : 'var(--red-light)'}}>{msg}</div>}
+        {!done && <>
+          <label>New Password</label>
+          <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)}/>
+          <label>Confirm Password</label>
+          <input type="password" placeholder="••••••••" value={confirm} onChange={e=>setConfirm(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleReset()}/>
+          <button className="login-btn" onClick={handleReset}>Set Password</button>
+        </>}
+        {done && <button className="login-btn" onClick={()=>window.location.href=window.location.pathname}>Go to Login</button>}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState('home');
   const [authLoading, setAuthLoading] = useState(true);
+  const [isReset, setIsReset] = useState(false);
 
   useEffect(()=>{
-    sb.auth.getSession().then(({data:{session}})=>{ setSession(session); setAuthLoading(false); });
-    sb.auth.onAuthStateChange((_,session)=>{ setSession(session); setAuthLoading(false); });
+    // Check if this is a password reset redirect
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      setIsReset(true);
+      sb.auth.getSession().then(({data:{session}})=>{ setSession(session); setAuthLoading(false); });
+    } else {
+      sb.auth.getSession().then(({data:{session}})=>{ setSession(session); setAuthLoading(false); });
+    }
+    sb.auth.onAuthStateChange((event, session)=>{
+      if (event === 'PASSWORD_RECOVERY') { setIsReset(true); }
+      setSession(session); setAuthLoading(false);
+    });
   },[]);
 
   useEffect(()=>{
@@ -398,6 +442,7 @@ function App() {
   }
 
   if (authLoading) return <div className="loading" style={{paddingTop:80}}>Loading...</div>;
+  if (isReset && session) return <ResetPasswordScreen />;
   if (!session) return <LoginScreen onLogin={()=>{}} />;
 
   const user = session.user;
