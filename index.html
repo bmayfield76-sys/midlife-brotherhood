@@ -13,13 +13,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --black:#0a0a0a;--dark:#111111;--card:#181818;--card2:#1f1f1f;
-  --red:#cc2200;--red-light:#e63300;--grey:#888;--grey-light:#aaa;
-  --white:#f0f0f0;--border:#2a2a2a;
-}
+:root{--black:#0a0a0a;--dark:#111111;--card:#181818;--card2:#1f1f1f;--red:#cc2200;--red-light:#e63300;--grey:#888;--grey-light:#aaa;--white:#f0f0f0;--border:#2a2a2a;}
 body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;margin:0;min-height:100vh;}
-input,textarea,button{font-family:'Barlow',sans-serif;}
+input,textarea,button,select{font-family:'Barlow',sans-serif;}
 </style>
 </head>
 <body>
@@ -29,8 +25,7 @@ const { createClient } = supabase;
 const SUPABASE_URL = 'https://alhclifwyzkahvtfqyjx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Zi3BzsuSxlAZkV4yjHLA7Q_y9gMsWRd';
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-const { useState, useEffect } = React;
+const { useState, useEffect, useRef } = React;
 
 const styles = `
 .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:var(--black);padding:2rem;}
@@ -86,13 +81,6 @@ const styles = `
 .meal-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;color:var(--white);}
 .meal-macros{font-size:12px;color:var(--grey);margin-top:2px;}
 .meal-cals{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--grey);}
-.progress-card{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:16px 18px;margin-bottom:8px;}
-.progress-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:6px;}
-.progress-val{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--white);line-height:1;}
-.progress-unit{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:var(--grey);margin-left:4px;}
-.progress-bar-track{height:4px;background:#222;border-radius:2px;margin-top:10px;overflow:hidden;}
-.progress-bar-fill{height:100%;background:var(--red);border-radius:2px;}
-.progress-sub{font-size:12px;color:var(--grey);margin-top:6px;}
 .message-item{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:8px;}
 .message-from{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
 .message-from.mine{color:var(--grey-light);}
@@ -102,6 +90,47 @@ const styles = `
 .message-reply input:focus{border-color:var(--red);}
 .send-btn{background:var(--red);border:none;border-radius:3px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:8px 16px;cursor:pointer;}
 .loading{text-align:center;color:var(--grey);padding:40px;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;font-size:13px;}
+.progress-card{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:16px 18px;margin-bottom:8px;}
+.progress-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:6px;}
+.progress-val{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--white);line-height:1;}
+.progress-unit{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:var(--grey);margin-left:4px;}
+.progress-bar-track{height:4px;background:#222;border-radius:2px;margin-top:10px;overflow:hidden;}
+.progress-bar-fill{height:100%;background:var(--red);border-radius:2px;}
+.progress-sub{font-size:12px;color:var(--grey);margin-top:6px;}
+.unit-toggle{display:flex;gap:0;margin-bottom:16px;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;width:fit-content;}
+.unit-btn{background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:8px 18px;cursor:pointer;transition:all 0.2s;}
+.unit-btn.active{background:var(--red);color:#fff;}
+.prog-subtab-row{display:flex;gap:8px;margin-bottom:16px;}
+.prog-subtab{background:none;border:0.5px solid var(--border);border-radius:3px;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:8px 14px;cursor:pointer;transition:all 0.2s;}
+.prog-subtab.active{background:var(--red);border-color:var(--red);color:#fff;}
+.meas-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.meas-field label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:5px;}
+.meas-field input{width:100%;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:14px;padding:9px 11px;outline:none;transition:border-color 0.2s;}
+.meas-field input:focus{border-color:var(--red);}
+.meas-history-item{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:8px;}
+.meas-date{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+.meas-vals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.meas-val-item{background:#111;border-radius:3px;padding:8px 6px;text-align:center;}
+.meas-val-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);line-height:1;}
+.meas-val-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--grey);margin-top:2px;}
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.photo-slot{background:var(--card);border:0.5px solid var(--border);border-radius:4px;aspect-ratio:3/4;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:border-color 0.2s;position:relative;overflow:hidden;}
+.photo-slot:hover{border-color:var(--red);}
+.photo-slot input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.photo-slot-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-top:8px;text-align:center;}
+.photo-slot-icon{font-size:28px;color:var(--grey);}
+.photo-slot img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;}
+.photo-slot-name{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--white);padding:4px;text-align:center;}
+.photo-history-month{margin-bottom:16px;}
+.photo-history-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;}
+.photo-history-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.photo-thumb{background:var(--card);border:0.5px solid var(--border);border-radius:3px;aspect-ratio:3/4;overflow:hidden;position:relative;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;}
+.photo-thumb-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--white);padding:3px;text-align:center;}
+.success-msg{font-size:13px;color:#22a84e;margin-top:8px;text-align:center;}
+.btn-full{width:100%;background:var(--red);border:none;border-radius:3px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;padding:13px;cursor:pointer;margin-top:8px;}
+.btn-full:hover{background:var(--red-light);}
+.uploading-msg{font-size:13px;color:var(--grey);text-align:center;margin-top:8px;}
 `;
 
 const MOTIVATIONS = [
@@ -128,6 +157,11 @@ function timeAgo(ts) {
   return `${Math.floor(diff/86400)}d ago`;
 }
 
+const lbsToKg = v => v ? (parseFloat(v) * 0.453592).toFixed(1) : '';
+const kgToLbs = v => v ? (parseFloat(v) / 0.453592).toFixed(1) : '';
+const inToCm = v => v ? (parseFloat(v) * 2.54).toFixed(1) : '';
+const cmToIn = v => v ? (parseFloat(v) / 2.54).toFixed(1) : '';
+
 function LoginScreen({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -151,8 +185,41 @@ function LoginScreen({ onLogin }) {
         <input type="email" placeholder="your@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
         <label>Access Code</label>
         <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
-        <button className="login-btn" onClick={handleLogin} disabled={loading}>{loading ? 'Checking...' : 'Enter the Brotherhood'}</button>
+        <button className="login-btn" onClick={handleLogin} disabled={loading}>{loading?'Checking...':'Enter the Brotherhood'}</button>
         <div className="login-footer">Access granted by Coach Billy Mayfield only.</div>
+      </div>
+    </div>
+  );
+}
+
+function ResetPasswordScreen() {
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [msg, setMsg] = useState('');
+  const [done, setDone] = useState(false);
+
+  async function handleReset() {
+    if (!password || password !== confirm) { setMsg('Passwords do not match.'); return; }
+    if (password.length < 6) { setMsg('Password must be at least 6 characters.'); return; }
+    const { error } = await sb.auth.updateUser({ password });
+    if (error) { setMsg('Something went wrong. Try again.'); }
+    else { setDone(true); setMsg('Password set. You can now log in.'); }
+  }
+
+  return (
+    <div className="login-screen">
+      <div className="login-logo">Midlife Brotherhood</div>
+      <div className="login-sub">Set Your Password</div>
+      <div className="login-card">
+        {msg && <div className="error-msg" style={{color:done?'#22a84e':'var(--red-light)'}}>{msg}</div>}
+        {!done && <>
+          <label>New Password</label>
+          <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)}/>
+          <label>Confirm Password</label>
+          <input type="password" placeholder="••••••••" value={confirm} onChange={e=>setConfirm(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleReset()}/>
+          <button className="login-btn" onClick={handleReset}>Set Password</button>
+        </>}
+        {done && <button className="login-btn" onClick={()=>window.location.href=window.location.pathname}>Go to Login</button>}
       </div>
     </div>
   );
@@ -163,7 +230,6 @@ function HomePage({ user, profile }) {
   const [win, setWin] = useState('');
   const [saved, setSaved] = useState(false);
   const motivation = MOTIVATIONS[new Date().getDay() % MOTIVATIONS.length];
-  const initials = profile?.name ? profile.name.split(' ').map(n=>n[0]).join('').toUpperCase() : '?';
 
   function togglePillar(key) { setPillars(p=>({...p,[key]:!p[key]})); }
 
@@ -190,8 +256,8 @@ function HomePage({ user, profile }) {
       </div>
       <div className="stats-row">
         <div className="stat-card"><div className="stat-num">{checkedCount}</div><div className="stat-label">Pillars Today</div></div>
-        <div className="stat-card"><div className="stat-num">{profile?.streak || 0}</div><div className="stat-label">Day Streak</div></div>
-        <div className="stat-card"><div className="stat-num">{profile?.adherence || 0}%</div><div className="stat-label">Adherence</div></div>
+        <div className="stat-card"><div className="stat-num">{profile?.streak||0}</div><div className="stat-label">Day Streak</div></div>
+        <div className="stat-card"><div className="stat-num">{profile?.adherence||0}%</div><div className="stat-label">Adherence</div></div>
       </div>
       <div className="section-header">Six Pillars — Today's Check-in</div>
       <div className="pillar-grid">
@@ -205,7 +271,7 @@ function HomePage({ user, profile }) {
       <div className="section-header">Today's Win</div>
       <div className="win-input-area">
         <textarea placeholder="What did you do right today? One thing. Write it down." value={win} onChange={e=>setWin(e.target.value)}/>
-        <button className="submit-btn" onClick={saveCheckin}>{saved ? 'Logged.' : 'Log It'}</button>
+        <button className="submit-btn" onClick={saveCheckin}>{saved?'Logged.':'Log It'}</button>
         <div style={{clear:'both'}}/>
       </div>
     </div>
@@ -221,14 +287,14 @@ function PackPage({ user, profile }) {
 
   async function loadPosts() {
     const { data } = await sb.from('pack_feed').select('*').order('created_at',{ascending:false}).limit(20);
-    setPosts(data || []); setLoading(false);
+    setPosts(data||[]); setLoading(false);
   }
 
   async function submitPost() {
     if (!content.trim()) return;
-    const name = profile?.name || 'Brother';
+    const name = profile?.name||'Brother';
     const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase();
-    await sb.from('pack_feed').insert({ user_id: user.id, name, initials, content });
+    await sb.from('pack_feed').insert({user_id:user.id,name,initials,content});
     setContent(''); loadPosts();
   }
 
@@ -250,7 +316,7 @@ function PackPage({ user, profile }) {
           <div className="feed-text">{p.content}</div>
         </div>
       ))}
-      {!loading && posts.length === 0 && <div className="loading">No posts yet. Be the first.</div>}
+      {!loading && posts.length===0 && <div className="loading">No posts yet. Be the first.</div>}
       <div className="win-input-area" style={{marginTop:16}}>
         <textarea placeholder="Post a win, a struggle, or a check-in. The pack is watching." value={content} onChange={e=>setContent(e.target.value)}/>
         <button className="submit-btn" onClick={submitPost}>Post</button>
@@ -267,17 +333,17 @@ function MealsPage({ user }) {
   useEffect(()=>{ loadMeals(); },[]);
 
   async function loadMeals() {
-    const { data } = await sb.from('meal_plans').select('*').eq('user_id', user.id).order('meal_time');
-    setMeals(data || []); setLoading(false);
+    const { data } = await sb.from('meal_plans').select('*').eq('user_id',user.id).order('meal_time');
+    setMeals(data||[]); setLoading(false);
   }
 
-  const totals = meals.reduce((acc,m)=>({ cal: acc.cal+(m.calories||0), pro: acc.pro+(m.protein||0), carb: acc.carb+(m.carbs||0) }),{cal:0,pro:0,carb:0});
+  const totals = meals.reduce((acc,m)=>({cal:acc.cal+(m.calories||0),pro:acc.pro+(m.protein||0),carb:acc.carb+(m.carbs||0)}),{cal:0,pro:0,carb:0});
 
   return (
     <div>
       <div className="greeting-day">Your Plan</div>
       <div className="greeting-name">Today's Meals</div>
-      {meals.length > 0 && (
+      {meals.length>0 && (
         <div className="stats-row" style={{marginBottom:16}}>
           <div className="stat-card"><div className="stat-num">{totals.cal}</div><div className="stat-label">Calories</div></div>
           <div className="stat-card"><div className="stat-num">{totals.pro}g</div><div className="stat-label">Protein</div></div>
@@ -285,7 +351,7 @@ function MealsPage({ user }) {
         </div>
       )}
       {loading && <div className="loading">Loading your plan...</div>}
-      {!loading && meals.length === 0 && <div className="loading">No meal plan assigned yet. Coach Billy will add yours soon.</div>}
+      {!loading && meals.length===0 && <div className="loading">No meal plan assigned yet. Coach Billy will add yours soon.</div>}
       {meals.map(m=>(
         <div key={m.id} className="meal-item">
           <div className="meal-time">{m.meal_time}</div>
@@ -301,33 +367,246 @@ function MealsPage({ user }) {
 }
 
 function ProgressPage({ user, profile }) {
-  const pct = (cur, start, goal) => {
-    if (!start || !goal || start === goal) return 0;
-    return Math.min(100, Math.round(((start - cur) / (start - goal)) * 100));
+  const [subtab, setSubtab] = useState('overview');
+  const [unit, setUnit] = useState('imperial'); // imperial = lbs/in, metric = kg/cm
+  const [measurements, setMeasurements] = useState([]);
+  const [photos, setPhotos] = useState([]);
+  const [loadingMeas, setLoadingMeas] = useState(true);
+  const [loadingPhotos, setLoadingPhotos] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const emptyMeas = {
+    weight:'',height:'',shoulders:'',chest:'',
+    upper_arm_right:'',upper_arm_left:'',waist:'',hips:'',
+    thigh_right:'',thigh_left:'',calf_right:'',calf_left:''
   };
+  const [form, setForm] = useState(emptyMeas);
+
+  const [photoFiles, setPhotoFiles] = useState({front:null,back:null,side:null});
+  const [photoPreviews, setPhotoPreviews] = useState({front:null,back:null,side:null});
+
+  useEffect(()=>{ loadMeasurements(); loadPhotos(); },[]);
+
+  async function loadMeasurements() {
+    const { data } = await sb.from('measurements').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(12);
+    setMeasurements(data||[]); setLoadingMeas(false);
+  }
+
+  async function loadPhotos() {
+    const { data } = await sb.from('progress_photos').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(12);
+    setPhotos(data||[]); setLoadingPhotos(false);
+  }
+
+  function displayVal(valInLbs, isWeight=true) {
+    if (!valInLbs) return '--';
+    if (unit === 'metric') {
+      return isWeight ? `${lbsToKg(valInLbs)} kg` : `${inToCm(valInLbs)} cm`;
+    }
+    return isWeight ? `${valInLbs} lbs` : `${valInLbs} in`;
+  }
+
+  async function saveMeasurements() {
+    const payload = { user_id: user.id };
+    Object.keys(form).forEach(k => { payload[k] = parseFloat(form[k])||null; });
+    await sb.from('measurements').insert(payload);
+    setForm(emptyMeas); setSaved(true);
+    loadMeasurements();
+    setTimeout(()=>setSaved(false),2500);
+  }
+
+  function handlePhotoSelect(angle, file) {
+    if (!file) return;
+    setPhotoFiles(p=>({...p,[angle]:file}));
+    setPhotoPreviews(p=>({...p,[angle]:URL.createObjectURL(file)}));
+  }
+
+  async function uploadPhotos() {
+    if (!photoFiles.front && !photoFiles.back && !photoFiles.side) return;
+    setUploading(true);
+    const month = new Date().toISOString().slice(0,7);
+    const urls = {};
+    for (const angle of ['front','back','side']) {
+      if (!photoFiles[angle]) continue;
+      const path = `${user.id}/${month}/${angle}-${Date.now()}.jpg`;
+      const { error } = await sb.storage.from('progress-photos').upload(path, photoFiles[angle], {upsert:true});
+      if (!error) {
+        const { data: urlData } = sb.storage.from('progress-photos').getPublicUrl(path);
+        urls[angle] = urlData.publicUrl;
+      }
+    }
+    if (Object.keys(urls).length > 0) {
+      await sb.from('progress_photos').insert({
+        user_id: user.id,
+        month,
+        front_url: urls.front||null,
+        back_url: urls.back||null,
+        side_url: urls.side||null
+      });
+    }
+    setPhotoFiles({front:null,back:null,side:null});
+    setPhotoPreviews({front:null,back:null,side:null});
+    setUploading(false);
+    loadPhotos();
+    setSaved(true);
+    setTimeout(()=>setSaved(false),2500);
+  }
+
+  const latest = measurements[0];
+  const pct = (cur,start,goal) => {
+    if (!start||!goal||start===goal) return 0;
+    return Math.min(100,Math.round(((start-cur)/(start-goal))*100));
+  };
+
+  const measFields = [
+    ['weight','Weight',true],['height','Height',false],
+    ['shoulders','Shoulders',false],['chest','Chest',false],
+    ['upper_arm_right','Bicep (R)',false],['upper_arm_left','Bicep (L)',false],
+    ['waist','Waist',false],['hips','Hips',false],
+    ['thigh_right','Thigh (R)',false],['thigh_left','Thigh (L)',false],
+    ['calf_right','Calf (R)',false],['calf_left','Calf (L)',false],
+  ];
 
   return (
     <div>
       <div className="greeting-day">Your Journey</div>
       <div className="greeting-name">Progress Tracker</div>
-      <div className="progress-card">
-        <div className="progress-label">Current Weight</div>
-        <div><span className="progress-val">{profile?.current_weight || '--'}</span><span className="progress-unit">lbs</span></div>
-        <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${pct(profile?.current_weight, profile?.start_weight, profile?.goal_weight)}%`}}/></div>
-        <div className="progress-sub">Goal: {profile?.goal_weight || '--'} lbs · Started: {profile?.start_weight || '--'} lbs</div>
+
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+        <div className="prog-subtab-row" style={{marginBottom:0}}>
+          {[['overview','Overview'],['measurements','Measurements'],['photos','Photos']].map(([key,label])=>(
+            <button key={key} className={`prog-subtab${subtab===key?' active':''}`} onClick={()=>setSubtab(key)}>{label}</button>
+          ))}
+        </div>
+        <div className="unit-toggle">
+          <button className={`unit-btn${unit==='imperial'?' active':''}`} onClick={()=>setUnit('imperial')}>lbs</button>
+          <button className={`unit-btn${unit==='metric'?' active':''}`} onClick={()=>setUnit('metric')}>kg</button>
+        </div>
       </div>
-      <div className="progress-card">
-        <div className="progress-label">Day Number</div>
-        <div><span className="progress-val">{profile?.day_number || 1}</span><span className="progress-unit">of 90</span></div>
-        <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${Math.round(((profile?.day_number||1)/90)*100)}%`}}/></div>
-        <div className="progress-sub">{90-(profile?.day_number||1)} days remaining in your current program</div>
-      </div>
-      <div className="progress-card">
-        <div className="progress-label">Adherence Rate</div>
-        <div><span className="progress-val">{profile?.adherence || 0}</span><span className="progress-unit">%</span></div>
-        <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${profile?.adherence||0}%`}}/></div>
-        <div className="progress-sub">Based on check-ins completed</div>
-      </div>
+
+      {subtab==='overview' && (
+        <div>
+          <div className="progress-card">
+            <div className="progress-label">Current Weight</div>
+            <div><span className="progress-val">{unit==='metric'?lbsToKg(profile?.current_weight):profile?.current_weight||'--'}</span><span className="progress-unit">{unit==='metric'?'kg':'lbs'}</span></div>
+            <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${pct(profile?.current_weight,profile?.start_weight,profile?.goal_weight)}%`}}/></div>
+            <div className="progress-sub">Goal: {unit==='metric'?lbsToKg(profile?.goal_weight):profile?.goal_weight||'--'} {unit==='metric'?'kg':'lbs'} · Started: {unit==='metric'?lbsToKg(profile?.start_weight):profile?.start_weight||'--'} {unit==='metric'?'kg':'lbs'}</div>
+          </div>
+          <div className="progress-card">
+            <div className="progress-label">Day Number</div>
+            <div><span className="progress-val">{profile?.day_number||1}</span><span className="progress-unit">of 90</span></div>
+            <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${Math.round(((profile?.day_number||1)/90)*100)}%`}}/></div>
+            <div className="progress-sub">{90-(profile?.day_number||1)} days remaining in your current program</div>
+          </div>
+          <div className="progress-card">
+            <div className="progress-label">Adherence Rate</div>
+            <div><span className="progress-val">{profile?.adherence||0}</span><span className="progress-unit">%</span></div>
+            <div className="progress-bar-track"><div className="progress-bar-fill" style={{width:`${profile?.adherence||0}%`}}/></div>
+            <div className="progress-sub">Based on check-ins completed</div>
+          </div>
+          {latest && (
+            <div>
+              <div className="section-header">Latest Measurements</div>
+              <div className="meas-history-item">
+                <div className="meas-date">{new Date(latest.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
+                <div className="meas-vals">
+                  {measFields.filter(([k])=>latest[k]).map(([k,label,isW])=>(
+                    <div key={k} className="meas-val-item">
+                      <div className="meas-val-num">{unit==='metric'?(isW?lbsToKg(latest[k]):inToCm(latest[k])):latest[k]}</div>
+                      <div className="meas-val-label">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {subtab==='measurements' && (
+        <div>
+          <div className="section-header">Log This Week's Measurements</div>
+          <div style={{background:'var(--card)',border:'0.5px solid var(--border)',borderRadius:4,padding:'16px 18px',marginBottom:12}}>
+            <div className="meas-grid">
+              {measFields.map(([key,label,isWeight])=>(
+                <div key={key} className="meas-field">
+                  <label>{label} ({unit==='metric'?(isWeight?'kg':'cm'):(isWeight?'lbs':'in')})</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    placeholder="0"
+                    value={form[key]}
+                    onChange={e=>{
+                      const raw = e.target.value;
+                      // Store always in lbs/inches internally
+                      const stored = unit==='metric'?(isWeight?kgToLbs(raw):cmToIn(raw)):raw;
+                      setForm(f=>({...f,[key]:stored}));
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+            <button className="btn-full" onClick={saveMeasurements}>Save Measurements</button>
+            {saved && <div className="success-msg">Saved.</div>}
+          </div>
+
+          <div className="section-header">Measurement History</div>
+          {loadingMeas && <div className="loading">Loading...</div>}
+          {!loadingMeas && measurements.length===0 && <div className="loading">No measurements logged yet.</div>}
+          {measurements.map(m=>(
+            <div key={m.id} className="meas-history-item">
+              <div className="meas-date">{new Date(m.created_at).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</div>
+              <div className="meas-vals">
+                {measFields.filter(([k])=>m[k]).map(([k,label,isW])=>(
+                  <div key={k} className="meas-val-item">
+                    <div className="meas-val-num">{unit==='metric'?(isW?lbsToKg(m[k]):inToCm(m[k])):m[k]}</div>
+                    <div className="meas-val-label">{label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {subtab==='photos' && (
+        <div>
+          <div className="section-header">This Month's Photos</div>
+          <div className="photo-grid">
+            {['front','back','side'].map(angle=>(
+              <div key={angle} className="photo-slot">
+                {photoPreviews[angle] && <img src={photoPreviews[angle]} alt={angle}/>}
+                {!photoPreviews[angle] && <><i className="ti ti-camera photo-slot-icon"/><div className="photo-slot-label">{angle}</div></>}
+                <div className="photo-slot-name">{angle}</div>
+                <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhotoSelect(angle,e.target.files[0])}/>
+              </div>
+            ))}
+          </div>
+          <button className="btn-full" onClick={uploadPhotos} disabled={uploading}>
+            {uploading?'Uploading...':'Upload Photos'}
+          </button>
+          {saved && <div className="success-msg">Photos saved.</div>}
+
+          <div className="section-header">Photo History</div>
+          {loadingPhotos && <div className="loading">Loading...</div>}
+          {!loadingPhotos && photos.length===0 && <div className="loading">No photos uploaded yet.</div>}
+          {photos.map(p=>(
+            <div key={p.id} className="photo-history-month">
+              <div className="photo-history-label">{p.month}</div>
+              <div className="photo-history-row">
+                {['front','back','side'].map(angle=>(
+                  p[`${angle}_url`] ? (
+                    <div key={angle} className="photo-thumb">
+                      <img src={p[`${angle}_url`]} alt={angle}/>
+                      <div className="photo-thumb-label">{angle}</div>
+                    </div>
+                  ) : <div key={angle} className="photo-thumb" style={{background:'#111',display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{color:'var(--grey)',fontSize:11,fontFamily:'Barlow Condensed',letterSpacing:1,textTransform:'uppercase'}}>{angle}</span></div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -342,13 +621,13 @@ function CoachPage({ user, profile }) {
   async function loadMessages() {
     const { data } = await sb.from('messages').select('*')
       .or(`sender_id.eq.${user.id},recipient_id.eq.${user.id}`)
-      .order('created_at', {ascending:true}).limit(30);
-    setMessages(data || []); setLoading(false);
+      .order('created_at',{ascending:true}).limit(30);
+    setMessages(data||[]); setLoading(false);
   }
 
   async function sendMessage() {
     if (!text.trim()) return;
-    await sb.from('messages').insert({ sender_id: user.id, content: text, from_coach: false });
+    await sb.from('messages').insert({sender_id:user.id,content:text,from_coach:false});
     setText(''); loadMessages();
   }
 
@@ -357,49 +636,16 @@ function CoachPage({ user, profile }) {
       <div className="greeting-day">Direct Line</div>
       <div className="greeting-name">Coach Billy</div>
       {loading && <div className="loading">Loading messages...</div>}
-      {!loading && messages.length === 0 && <div className="loading">No messages yet. Say something.</div>}
+      {!loading && messages.length===0 && <div className="loading">No messages yet. Say something.</div>}
       {messages.map(m=>(
         <div key={m.id} className="message-item">
-          <div className={`message-from${m.from_coach?'':' mine'}`}>{m.from_coach ? 'Coach Billy' : (profile?.name?.split(' ')[0] || 'You')}</div>
+          <div className={`message-from${m.from_coach?'':' mine'}`}>{m.from_coach?'Coach Billy':(profile?.name?.split(' ')[0]||'You')}</div>
           <div className="message-text">{m.content}</div>
         </div>
       ))}
       <div className="message-reply">
         <input type="text" placeholder="Message Coach Billy..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMessage()}/>
         <button className="send-btn" onClick={sendMessage}>Send</button>
-      </div>
-    </div>
-  );
-}
-
-function ResetPasswordScreen() {
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [msg, setMsg] = useState('');
-  const [done, setDone] = useState(false);
-
-  async function handleReset() {
-    if (!password || password !== confirm) { setMsg('Passwords do not match.'); return; }
-    if (password.length < 6) { setMsg('Password must be at least 6 characters.'); return; }
-    const { error } = await sb.auth.updateUser({ password });
-    if (error) { setMsg('Something went wrong. Try again.'); }
-    else { setDone(true); setMsg('Password set. You can now log in.'); }
-  }
-
-  return (
-    <div className="login-screen">
-      <div className="login-logo">Midlife Brotherhood</div>
-      <div className="login-sub">Set Your Password</div>
-      <div className="login-card">
-        {msg && <div className={done ? 'error-msg' : 'error-msg'} style={{color: done ? '#22a84e' : 'var(--red-light)'}}>{msg}</div>}
-        {!done && <>
-          <label>New Password</label>
-          <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)}/>
-          <label>Confirm Password</label>
-          <input type="password" placeholder="••••••••" value={confirm} onChange={e=>setConfirm(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleReset()}/>
-          <button className="login-btn" onClick={handleReset}>Set Password</button>
-        </>}
-        {done && <button className="login-btn" onClick={()=>window.location.href=window.location.pathname}>Go to Login</button>}
       </div>
     </div>
   );
@@ -413,7 +659,6 @@ function App() {
   const [isReset, setIsReset] = useState(false);
 
   useEffect(()=>{
-    // Check if this is a password reset redirect
     const hash = window.location.hash;
     if (hash && hash.includes('type=recovery')) {
       setIsReset(true);
@@ -421,8 +666,8 @@ function App() {
     } else {
       sb.auth.getSession().then(({data:{session}})=>{ setSession(session); setAuthLoading(false); });
     }
-    sb.auth.onAuthStateChange((event, session)=>{
-      if (event === 'PASSWORD_RECOVERY') { setIsReset(true); }
+    sb.auth.onAuthStateChange((event,session)=>{
+      if (event==='PASSWORD_RECOVERY') setIsReset(true);
       setSession(session); setAuthLoading(false);
     });
   },[]);
@@ -432,7 +677,7 @@ function App() {
   },[session]);
 
   async function loadProfile(uid) {
-    const { data } = await sb.from('profiles').select('*').eq('id', uid).single();
+    const { data } = await sb.from('profiles').select('*').eq('id',uid).single();
     setProfile(data);
   }
 
@@ -442,18 +687,18 @@ function App() {
   }
 
   if (authLoading) return <div className="loading" style={{paddingTop:80}}>Loading...</div>;
-  if (isReset && session) return <ResetPasswordScreen />;
-  if (!session) return <LoginScreen onLogin={()=>{}} />;
+  if (isReset && session) return <ResetPasswordScreen/>;
+  if (!session) return <LoginScreen onLogin={()=>{}}/>;
 
   const user = session.user;
-  const initials = profile?.name ? profile.name.split(' ').map(n=>n[0]).join('').toUpperCase() : user.email[0].toUpperCase();
+  const initials = profile?.name?profile.name.split(' ').map(n=>n[0]).join('').toUpperCase():user.email[0].toUpperCase();
 
   const tabs = [
-    {key:'home', icon:'ti-home', label:'Home'},
-    {key:'pack', icon:'ti-shield', label:'Pack'},
-    {key:'meals', icon:'ti-tool-kitchen-2', label:'Meals'},
-    {key:'progress', icon:'ti-chart-line', label:'Progress'},
-    {key:'coach', icon:'ti-message', label:'Coach'},
+    {key:'home',icon:'ti-home',label:'Home'},
+    {key:'pack',icon:'ti-shield',label:'Pack'},
+    {key:'meals',icon:'ti-tool-kitchen-2',label:'Meals'},
+    {key:'progress',icon:'ti-chart-line',label:'Progress'},
+    {key:'coach',icon:'ti-message',label:'Coach'},
   ];
 
   return (
