@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MB — Coach Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#0a0a0a;--dark:#111111;--card:#181818;--card2:#1f1f1f;
+  --red:#cc2200;--red-light:#e63300;--grey:#888;--grey-light:#aaa;
+  --white:#f0f0f0;--border:#2a2a2a;--green:#1a7a3a;--green-light:#22a84e;
+}
+body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;margin:0;min-height:100vh;}
+input,textarea,button,select{font-family:'Barlow',sans-serif;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { createClient } = supabase;
+const SUPABASE_URL = 'https://alhclifwyzkahvtfqyjx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Zi3BzsuSxlAZkV4yjHLA7Q_y9gMsWRd';
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+const COACH_EMAIL = 'bmayfield76@gmail.com';
+
+const { useState, useEffect } = React;
+
+const styles = `
+.login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;background:var(--black);padding:2rem;}
+.login-logo{font-family:'Bebas Neue',sans-serif;font-size:42px;letter-spacing:3px;color:var(--white);text-align:center;line-height:1;margin-bottom:4px;}
+.login-sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:5px;color:var(--red);text-transform:uppercase;text-align:center;margin-bottom:40px;}
+.login-card{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:36px 40px;width:100%;max-width:380px;}
+.login-card label{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey-light);margin-bottom:8px;}
+.login-card input{width:100%;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:15px;padding:12px 14px;margin-bottom:20px;outline:none;transition:border-color 0.2s;}
+.login-card input:focus{border-color:var(--red);}
+.login-btn{width:100%;background:var(--red);border:none;border-radius:3px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;padding:13px;cursor:pointer;margin-top:4px;}
+.login-btn:hover{background:var(--red-light);}
+.login-footer{font-size:12px;color:var(--grey);text-align:center;margin-top:20px;}
+.error-msg{font-size:13px;color:var(--red-light);text-align:center;margin-bottom:12px;}
+.top-nav{background:var(--dark);border-bottom:0.5px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--white);}
+.nav-logo span{color:var(--red);}
+.nav-badge{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;background:var(--red);color:#fff;border-radius:2px;padding:3px 10px;}
+.tab-bar{background:var(--dark);border-bottom:0.5px solid var(--border);display:flex;height:52px;padding:0 24px;gap:4px;align-items:center;}
+.tab-btn{background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-radius:3px;transition:all 0.2s;}
+.tab-btn.active{background:var(--red);color:#fff;}
+.tab-btn:hover:not(.active){color:var(--white);}
+.main{padding:24px;max-width:900px;margin:0 auto;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;color:var(--white);margin-bottom:4px;}
+.section-sub{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:24px;}
+.client-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px;}
+.client-card{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:16px 18px;cursor:pointer;transition:border-color 0.2s;}
+.client-card:hover{border-color:var(--red);}
+.client-card.selected{border-color:var(--red);}
+.client-avatar{width:44px;height:44px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;color:#fff;margin-bottom:12px;}
+.client-name{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;letter-spacing:1px;color:var(--white);}
+.client-meta{font-size:12px;color:var(--grey);margin-top:3px;}
+.client-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;}
+.mini-stat{background:#111;border-radius:3px;padding:8px 6px;text-align:center;}
+.mini-stat-num{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--white);line-height:1;}
+.mini-stat-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--grey);margin-top:1px;}
+.panel{background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:20px 24px;margin-bottom:12px;}
+.panel-title{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin-bottom:16px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-row.three{grid-template-columns:1fr 1fr 1fr;}
+.form-row.single{grid-template-columns:1fr;}
+.field label{display:block;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--grey-light);margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:14px;padding:10px 12px;outline:none;transition:border-color 0.2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--red);}
+.field select option{background:var(--dark);}
+.field textarea{min-height:80px;resize:vertical;}
+.btn-red{background:var(--red);border:none;border-radius:3px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;cursor:pointer;transition:background 0.2s;}
+.btn-red:hover{background:var(--red-light);}
+.btn-grey{background:#222;border:0.5px solid var(--border);border-radius:3px;color:var(--grey-light);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;cursor:pointer;}
+.btn-grey:hover{color:var(--white);}
+.btn-green{background:var(--green);border:none;border-radius:3px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;text-transform:uppercase;padding:10px 20px;cursor:pointer;}
+.btn-green:hover{background:var(--green-light);}
+.btn-row{display:flex;gap:8px;margin-top:16px;}
+.success-msg{font-size:13px;color:var(--green-light);margin-top:8px;}
+.meal-row{display:grid;grid-template-columns:80px 1fr 60px 60px 60px 80px 40px;gap:8px;align-items:center;margin-bottom:8px;}
+.meal-row-header{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;display:grid;grid-template-columns:80px 1fr 60px 60px 60px 80px 40px;gap:8px;}
+.meal-row input{background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:13px;padding:8px;outline:none;width:100%;}
+.meal-row input:focus{border-color:var(--red);}
+.remove-btn{background:none;border:none;color:var(--grey);cursor:pointer;font-size:18px;padding:0;}
+.remove-btn:hover{color:var(--red-light);}
+.message-thread{margin-bottom:16px;}
+.msg-item{padding:10px 14px;border-radius:3px;margin-bottom:6px;font-size:14px;line-height:1.5;}
+.msg-coach{background:rgba(204,34,0,0.12);border-left:2px solid var(--red);color:var(--grey-light);}
+.msg-client{background:#151515;border-left:2px solid var(--border);color:var(--grey-light);}
+.msg-from{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.msg-from.coach{color:var(--red);}
+.msg-from.client{color:var(--grey);}
+.checkin-item{background:#111;border-radius:3px;padding:12px 14px;margin-bottom:8px;}
+.checkin-date{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-bottom:8px;}
+.pillar-dots{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;}
+.dot{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;}
+.dot.on{background:var(--red);color:#fff;}
+.dot.off{background:#222;color:var(--grey);}
+.win-text{font-size:13px;color:var(--grey-light);margin-top:6px;font-style:italic;}
+.loading{text-align:center;color:var(--grey);padding:40px;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;text-transform:uppercase;font-size:13px;}
+.empty{text-align:center;color:var(--grey);padding:24px;font-size:13px;}
+.logout-btn{background:none;border:0.5px solid var(--border);border-radius:3px;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:6px 14px;cursor:pointer;}
+.logout-btn:hover{color:var(--white);}
+`;
+
+function timeAgo(ts) {
+  const diff = (Date.now() - new Date(ts)) / 1000;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleLogin() {
+    if (!email || !password) { setError('Enter your credentials.'); return; }
+    setLoading(true); setError('');
+    const { data, error: err } = await sb.auth.signInWithPassword({ email, password });
+    if (err || data?.user?.email !== COACH_EMAIL) {
+      await sb.auth.signOut();
+      setError('Coach access only.'); setLoading(false);
+    }
+  }
+
+  return (
+    <div className="login-screen">
+      <div className="login-logo">Midlife Brotherhood</div>
+      <div className="login-sub">Coach Dashboard</div>
+      <div className="login-card">
+        {error && <div className="error-msg">{error}</div>}
+        <label>Email</label>
+        <input type="email" placeholder="your@email.com" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
+        <label>Password</label>
+        <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()}/>
+        <button className="login-btn" onClick={handleLogin} disabled={loading}>{loading?'Checking...':'Enter Dashboard'}</button>
+        <div className="login-footer">Authorized personnel only.</div>
+      </div>
+    </div>
+  );
+}
+
+function ClientsTab({ coachId }) {
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [saved, setSaved] = useState(false);
+
+  useEffect(()=>{ loadClients(); },[]);
+
+  async function loadClients() {
+    const { data } = await sb.from('profiles').select('*').neq('email', COACH_EMAIL).order('name');
+    setClients(data||[]); setLoading(false);
+  }
+
+  function selectClient(c) {
+    setSelected(c); setEditData({...c}); setSaved(false);
+  }
+
+  async function saveClient() {
+    await sb.from('profiles').update({
+      name: editData.name,
+      day_number: parseInt(editData.day_number)||1,
+      streak: parseInt(editData.streak)||0,
+      adherence: parseInt(editData.adherence)||0,
+      start_weight: parseFloat(editData.start_weight)||0,
+      current_weight: parseFloat(editData.current_weight)||0,
+      goal_weight: parseFloat(editData.goal_weight)||0,
+    }).eq('id', selected.id);
+    setSaved(true);
+    loadClients();
+    setTimeout(()=>setSaved(false), 2000);
+  }
+
+  return (
+    <div>
+      <div className="section-title">The Pack</div>
+      <div className="section-sub">All active clients</div>
+      {loading && <div className="loading">Loading clients...</div>}
+      {!loading && clients.length === 0 && <div className="empty">No clients yet. Add them via Supabase Auth > Invite user.</div>}
+      <div className="client-grid">
+        {clients.map(c=>(
+          <div key={c.id} className={`client-card${selected?.id===c.id?' selected':''}`} onClick={()=>selectClient(c)}>
+            <div className="client-avatar">{c.avatar_initials||'?'}</div>
+            <div className="client-name">{c.name}</div>
+            <div className="client-meta">{c.email} · Day {c.day_number||1} of 90</div>
+            <div className="client-stats">
+              <div className="mini-stat"><div className="mini-stat-num">{c.current_weight||'--'}</div><div className="mini-stat-label">lbs</div></div>
+              <div className="mini-stat"><div className="mini-stat-num">{c.streak||0}</div><div className="mini-stat-label">Streak</div></div>
+              <div className="mini-stat"><div className="mini-stat-num">{c.adherence||0}%</div><div className="mini-stat-label">Adhere</div></div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {selected && (
+        <div className="panel">
+          <div className="panel-title">Editing — {selected.name}</div>
+          <div className="form-row">
+            <div className="field"><label>Full Name</label><input value={editData.name||''} onChange={e=>setEditData({...editData,name:e.target.value})}/></div>
+            <div className="field"><label>Avatar Initials</label><input value={editData.avatar_initials||''} onChange={e=>setEditData({...editData,avatar_initials:e.target.value})} maxLength={3}/></div>
+          </div>
+          <div className="form-row three">
+            <div className="field"><label>Start Weight</label><input type="number" value={editData.start_weight||''} onChange={e=>setEditData({...editData,start_weight:e.target.value})}/></div>
+            <div className="field"><label>Current Weight</label><input type="number" value={editData.current_weight||''} onChange={e=>setEditData({...editData,current_weight:e.target.value})}/></div>
+            <div className="field"><label>Goal Weight</label><input type="number" value={editData.goal_weight||''} onChange={e=>setEditData({...editData,goal_weight:e.target.value})}/></div>
+          </div>
+          <div className="form-row three">
+            <div className="field"><label>Day Number</label><input type="number" value={editData.day_number||1} onChange={e=>setEditData({...editData,day_number:e.target.value})}/></div>
+            <div className="field"><label>Streak</label><input type="number" value={editData.streak||0} onChange={e=>setEditData({...editData,streak:e.target.value})}/></div>
+            <div className="field"><label>Adherence %</label><input type="number" value={editData.adherence||0} onChange={e=>setEditData({...editData,adherence:e.target.value})}/></div>
+          </div>
+          <div className="btn-row">
+            <button className="btn-red" onClick={saveClient}>Save Changes</button>
+            <button className="btn-grey" onClick={()=>setSelected(null)}>Cancel</button>
+          </div>
+          {saved && <div className="success-msg">Saved.</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MealsTab({ coachId }) {
+  const [clients, setClients] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [meals, setMeals] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const emptyMeal = ()=>({id:Date.now()+Math.random(), meal_time:'', meal_name:'', protein:'', carbs:'', fat:'', calories:'', isNew:true});
+
+  useEffect(()=>{ loadClients(); },[]);
+
+  async function loadClients() {
+    const { data } = await sb.from('profiles').select('id,name').neq('email',COACH_EMAIL).order('name');
+    setClients(data||[]);
+  }
+
+  async function loadMeals(uid) {
+    setLoading(true);
+    const { data } = await sb.from('meal_plans').select('*').eq('user_id',uid).order('meal_time');
+    setMeals(data||[]); setLoading(false);
+  }
+
+  function selectClient(uid) {
+    setSelectedId(uid);
+    if (uid) loadMeals(uid);
+    else setMeals([]);
+  }
+
+  function updateMeal(idx, field, val) {
+    setMeals(m=>m.map((r,i)=>i===idx?{...r,[field]:val}:r));
+  }
+
+  function addMeal() { setMeals(m=>[...m, emptyMeal()]); }
+
+  async function removeMeal(meal) {
+    if (!meal.isNew) await sb.from('meal_plans').delete().eq('id',meal.id);
+    setMeals(m=>m.filter(r=>r.id!==meal.id));
+  }
+
+  async function saveMeals() {
+    for (const meal of meals) {
+      const payload = {
+        user_id: selectedId,
+        meal_time: meal.meal_time,
+        meal_name: meal.meal_name,
+        protein: parseInt(meal.protein)||0,
+        carbs: parseInt(meal.carbs)||0,
+        fat: parseInt(meal.fat)||0,
+        calories: parseInt(meal.calories)||0,
+      };
+      if (meal.isNew) {
+        await sb.from('meal_plans').insert(payload);
+      } else {
+        await sb.from('meal_plans').update(payload).eq('id',meal.id);
+      }
+    }
+    setSaved(true);
+    loadMeals(selectedId);
+    setTimeout(()=>setSaved(false),2000);
+  }
+
+  return (
+    <div>
+      <div className="section-title">Meal Plans</div>
+      <div className="section-sub">Assign and edit client nutrition</div>
+      <div className="panel">
+        <div className="field" style={{marginBottom:16}}>
+          <label>Select Client</label>
+          <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
+            <option value="">-- Choose a client --</option>
+            {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        {selectedId && (
+          <div>
+            {loading && <div className="loading">Loading meals...</div>}
+            {!loading && (
+              <div>
+                <div className="meal-row-header">
+                  <span>Time</span><span>Meal</span><span>Protein</span><span>Carbs</span><span>Fat</span><span>Calories</span><span></span>
+                </div>
+                {meals.map((meal,idx)=>(
+                  <div key={meal.id} className="meal-row">
+                    <input placeholder="6am" value={meal.meal_time} onChange={e=>updateMeal(idx,'meal_time',e.target.value)}/>
+                    <input placeholder="Meal name" value={meal.meal_name} onChange={e=>updateMeal(idx,'meal_name',e.target.value)}/>
+                    <input type="number" placeholder="0" value={meal.protein} onChange={e=>updateMeal(idx,'protein',e.target.value)}/>
+                    <input type="number" placeholder="0" value={meal.carbs} onChange={e=>updateMeal(idx,'carbs',e.target.value)}/>
+                    <input type="number" placeholder="0" value={meal.fat} onChange={e=>updateMeal(idx,'fat',e.target.value)}/>
+                    <input type="number" placeholder="0" value={meal.calories} onChange={e=>updateMeal(idx,'calories',e.target.value)}/>
+                    <button className="remove-btn" onClick={()=>removeMeal(meal)}><i className="ti ti-x"/></button>
+                  </div>
+                ))}
+                {meals.length===0 && <div className="empty">No meals yet. Add one below.</div>}
+                <div className="btn-row">
+                  <button className="btn-grey" onClick={addMeal}><i className="ti ti-plus"/> Add Meal</button>
+                  <button className="btn-red" onClick={saveMeals}>Save Plan</button>
+                </div>
+                {saved && <div className="success-msg">Meal plan saved.</div>}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function MessagesTab({ coachId }) {
+  const [clients, setClients] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(()=>{ loadClients(); },[]);
+
+  async function loadClients() {
+    const { data } = await sb.from('profiles').select('id,name').neq('email',COACH_EMAIL).order('name');
+    setClients(data||[]);
+  }
+
+  async function loadMessages(uid) {
+    setLoading(true);
+    const { data } = await sb.from('messages').select('*')
+      .or(`sender_id.eq.${uid},recipient_id.eq.${uid}`)
+      .order('created_at',{ascending:true}).limit(50);
+    setMessages(data||[]); setLoading(false);
+  }
+
+  function selectClient(uid) {
+    setSelectedId(uid);
+    if (uid) loadMessages(uid);
+    else setMessages([]);
+  }
+
+  async function sendMessage() {
+    if (!text.trim() || !selectedId) return;
+    await sb.from('messages').insert({
+      sender_id: coachId,
+      recipient_id: selectedId,
+      content: text,
+      from_coach: true
+    });
+    setText('');
+    loadMessages(selectedId);
+  }
+
+  const clientName = clients.find(c=>c.id===selectedId)?.name || '';
+
+  return (
+    <div>
+      <div className="section-title">Coach Inbox</div>
+      <div className="section-sub">Message your clients directly</div>
+      <div className="panel">
+        <div className="field" style={{marginBottom:16}}>
+          <label>Select Client</label>
+          <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
+            <option value="">-- Choose a client --</option>
+            {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        {selectedId && (
+          <div>
+            {loading && <div className="loading">Loading messages...</div>}
+            <div className="message-thread">
+              {messages.map(m=>(
+                <div key={m.id} className={`msg-item ${m.from_coach?'msg-coach':'msg-client'}`}>
+                  <div className={`msg-from ${m.from_coach?'coach':'client'}`}>{m.from_coach?'Coach Billy':clientName} · {timeAgo(m.created_at)}</div>
+                  {m.content}
+                </div>
+              ))}
+              {!loading && messages.length===0 && <div className="empty">No messages yet with this client.</div>}
+            </div>
+            <div className="field"><label>Your Message</label><textarea placeholder={`Write to ${clientName}...`} value={text} onChange={e=>setText(e.target.value)}/></div>
+            <div className="btn-row"><button className="btn-red" onClick={sendMessage}>Send Message</button></div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CheckinsTab() {
+  const [clients, setClients] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [checkins, setCheckins] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(()=>{ loadClients(); },[]);
+
+  async function loadClients() {
+    const { data } = await sb.from('profiles').select('id,name').neq('email',COACH_EMAIL).order('name');
+    setClients(data||[]);
+  }
+
+  async function loadCheckins(uid) {
+    setLoading(true);
+    const { data } = await sb.from('checkins').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(30);
+    setCheckins(data||[]); setLoading(false);
+  }
+
+  function selectClient(uid) {
+    setSelectedId(uid);
+    if (uid) loadCheckins(uid);
+    else setCheckins([]);
+  }
+
+  const pillars = [['body','B'],['mind','M'],['purpose','P'],['finances','F'],['relationships','R'],['brotherhood','BR']];
+
+  return (
+    <div>
+      <div className="section-title">Check-ins</div>
+      <div className="section-sub">Client daily activity</div>
+      <div className="panel">
+        <div className="field" style={{marginBottom:16}}>
+          <label>Select Client</label>
+          <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
+            <option value="">-- Choose a client --</option>
+            {clients.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+        {selectedId && (
+          <div>
+            {loading && <div className="loading">Loading check-ins...</div>}
+            {!loading && checkins.length===0 && <div className="empty">No check-ins yet from this client.</div>}
+            {checkins.map(c=>(
+              <div key={c.id} className="checkin-item">
+                <div className="checkin-date">{new Date(c.created_at).toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}</div>
+                <div className="pillar-dots">
+                  {pillars.map(([key,label])=>(
+                    <div key={key} className={`dot ${c[key]?'on':'off'}`}>{label}</div>
+                  ))}
+                </div>
+                {c.win_log && <div className="win-text">"{c.win_log}"</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [tab, setTab] = useState('clients');
+
+  useEffect(()=>{
+    sb.auth.getSession().then(({data:{session}})=>{
+      if (session?.user?.email === COACH_EMAIL) setSession(session);
+      setAuthLoading(false);
+    });
+    sb.auth.onAuthStateChange((_,session)=>{
+      if (session?.user?.email === COACH_EMAIL) setSession(session);
+      else { setSession(null); setAuthLoading(false); }
+    });
+  },[]);
+
+  async function handleLogout() {
+    await sb.auth.signOut();
+    setSession(null);
+  }
+
+  if (authLoading) return <div className="loading" style={{paddingTop:80}}>Loading...</div>;
+  if (!session) return <LoginScreen/>;
+
+  const tabs = [
+    {key:'clients',label:'Clients'},
+    {key:'meals',label:'Meal Plans'},
+    {key:'messages',label:'Messages'},
+    {key:'checkins',label:'Check-ins'},
+  ];
+
+  return (
+    <div style={{background:'var(--black)',minHeight:'100vh'}}>
+      <div className="top-nav">
+        <div className="nav-logo">MB<span>.</span> <span style={{fontSize:14,color:'var(--grey)',fontFamily:'Barlow Condensed',letterSpacing:2}}>COACH</span></div>
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <div className="nav-badge">Coach</div>
+          <button className="logout-btn" onClick={handleLogout}>Sign Out</button>
+        </div>
+      </div>
+      <div className="tab-bar">
+        {tabs.map(t=>(
+          <button key={t.key} className={`tab-btn${tab===t.key?' active':''}`} onClick={()=>setTab(t.key)}>{t.label}</button>
+        ))}
+      </div>
+      <div className="main">
+        {tab==='clients' && <ClientsTab coachId={session.user.id}/>}
+        {tab==='meals' && <MealsTab coachId={session.user.id}/>}
+        {tab==='messages' && <MessagesTab coachId={session.user.id}/>}
+        {tab==='checkins' && <CheckinsTab/>}
+      </div>
+    </div>
+  );
+}
+
+const styleEl = document.createElement('style');
+styleEl.textContent = styles;
+document.head.appendChild(styleEl);
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
