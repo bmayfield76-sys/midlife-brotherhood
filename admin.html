@@ -161,7 +161,7 @@ function ClientsTab({ coachId }) {
   useEffect(()=>{ loadClients(); },[]);
 
   async function loadClients() {
-    const { data } = await sb.from('profiles').select('*').neq('email', COACH_EMAIL).order('name');
+    const { data } = await sb.from('profiles').select('*').order('name');
     setClients(data||[]); setLoading(false);
   }
 
@@ -245,7 +245,7 @@ function MealsTab({ coachId }) {
   useEffect(()=>{ loadClients(); },[]);
 
   async function loadClients() {
-    const { data } = await sb.from('profiles').select('id,name').neq('email',COACH_EMAIL).order('name');
+    const { data } = await sb.from('profiles').select('id,name').order('name');
     setClients(data||[]);
   }
 
@@ -351,7 +351,7 @@ function MessagesTab({ coachId }) {
   useEffect(()=>{ loadClients(); },[]);
 
   async function loadClients() {
-    const { data } = await sb.from('profiles').select('id,name').neq('email',COACH_EMAIL).order('name');
+    const { data } = await sb.from('profiles').select('id,name').order('name');
     setClients(data||[]);
   }
 
@@ -426,7 +426,7 @@ function CheckinsTab() {
   useEffect(()=>{ loadClients(); },[]);
 
   async function loadClients() {
-    const { data } = await sb.from('profiles').select('id,name').neq('email',COACH_EMAIL).order('name');
+    const { data } = await sb.from('profiles').select('id,name').order('name');
     setClients(data||[]);
   }
 
@@ -478,6 +478,154 @@ function CheckinsTab() {
   );
 }
 
+
+function MeasurementsTab() {
+  const [clients, setClients] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [measurements, setMeasurements] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(()=>{ loadClients(); },[]);
+
+  async function loadClients() {
+    const { data } = await sb.from('profiles').select('id,name').order('name');
+    setClients(data||[]);
+  }
+
+  async function loadMeasurements(uid) {
+    setLoading(true);
+    const { data } = await sb.from('measurements').select('*').eq('user_id', uid).order('created_at', {ascending:false}).limit(20);
+    setMeasurements(data||[]); setLoading(false);
+  }
+
+  function selectClient(uid) {
+    setSelectedId(uid);
+    if (uid) loadMeasurements(uid);
+    else setMeasurements([]);
+  }
+
+  const fields = [
+    ['weight','Weight (lbs)'],['shoulders','Shoulders'],['chest','Chest'],
+    ['upper_arm_right','Bicep R'],['upper_arm_left','Bicep L'],
+    ['waist','Waist'],['hips','Hips'],
+    ['thigh_right','Thigh R'],['thigh_left','Thigh L'],
+    ['calf_right','Calf R'],['calf_left','Calf L'],
+  ];
+
+  return (
+    <div>
+      <div className="section-title">Measurements</div>
+      <div className="section-sub">Client body measurements history</div>
+      <div className="panel">
+        <div className="field" style={{marginBottom:16}}>
+          <label>Select Client</label>
+          <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
+            <option value="">-- Choose a client --</option>
+            {clients.map(c=><option key={c.id} value={c.id}>{c.name||c.email}</option>)}
+          </select>
+        </div>
+        {selectedId && (
+          <div style={{overflowX:'auto'}}>
+            {loading && <div className="loading">Loading measurements...</div>}
+            {!loading && measurements.length===0 && <div className="empty">No measurements logged yet.</div>}
+            {!loading && measurements.length>0 && (
+              <table className="meas-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    {fields.map(([k,l])=><th key={k}>{l}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {measurements.map(m=>(
+                    <tr key={m.id}>
+                      <td style={{whiteSpace:'nowrap'}}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+                      {fields.map(([k])=><td key={k}>{m[k]||'--'}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PhotosTab() {
+  const [clients, setClients] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
+
+  useEffect(()=>{ loadClients(); },[]);
+
+  async function loadClients() {
+    const { data } = await sb.from('profiles').select('id,name').order('name');
+    setClients(data||[]);
+  }
+
+  async function loadPhotos(uid) {
+    setLoading(true);
+    const { data } = await sb.from('progress_photos').select('*').eq('user_id', uid).order('created_at', {ascending:false});
+    setPhotos(data||[]); setLoading(false);
+  }
+
+  function selectClient(uid) {
+    setSelectedId(uid);
+    if (uid) loadPhotos(uid);
+    else setPhotos([]);
+  }
+
+  return (
+    <div>
+      {lightbox && (
+        <div className="lightbox" onClick={()=>setLightbox(null)}>
+          <img src={lightbox} alt="Progress photo"/>
+        </div>
+      )}
+      <div className="section-title">Progress Photos</div>
+      <div className="section-sub">Monthly client photo check-ins</div>
+      <div className="panel">
+        <div className="field" style={{marginBottom:16}}>
+          <label>Select Client</label>
+          <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
+            <option value="">-- Choose a client --</option>
+            {clients.map(c=><option key={c.id} value={c.id}>{c.name||c.email}</option>)}
+          </select>
+        </div>
+        {selectedId && (
+          <div>
+            {loading && <div className="loading">Loading photos...</div>}
+            {!loading && photos.length===0 && <div className="empty">No photos uploaded yet.</div>}
+            {photos.map(p=>(
+              <div key={p.id}>
+                <div className="photo-month-label">{p.month}</div>
+                <div className="photo-grid-admin">
+                  {['front','back','side'].map(angle=>(
+                    p[`${angle}_url`] ? (
+                      <div key={angle} className="photo-thumb-admin">
+                        <img src={p[`${angle}_url`]} alt={angle} onClick={()=>setLightbox(p[`${angle}_url`])}/>
+                        <div className="photo-thumb-label">{angle}</div>
+                      </div>
+                    ) : (
+                      <div key={angle} className="photo-thumb-admin" style={{display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <span style={{color:'var(--grey)',fontSize:11,fontFamily:'Barlow Condensed',letterSpacing:1,textTransform:'uppercase'}}>{angle}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -507,6 +655,8 @@ function App() {
     {key:'meals',label:'Meal Plans'},
     {key:'messages',label:'Messages'},
     {key:'checkins',label:'Check-ins'},
+    {key:'measurements',label:'Measurements'},
+    {key:'photos',label:'Photos'},
   ];
 
   return (
@@ -528,6 +678,8 @@ function App() {
         {tab==='meals' && <MealsTab coachId={session.user.id}/>}
         {tab==='messages' && <MessagesTab coachId={session.user.id}/>}
         {tab==='checkins' && <CheckinsTab/>}
+        {tab==='measurements' && <MeasurementsTab/>}
+        {tab==='photos' && <PhotosTab/>}
       </div>
     </div>
   );
