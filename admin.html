@@ -109,6 +109,9 @@ const styles = `
 .empty{text-align:center;color:var(--grey);padding:24px;font-size:13px;}
 .logout-btn{background:none;border:0.5px solid var(--border);border-radius:3px;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:6px 14px;cursor:pointer;}
 .logout-btn:hover{color:var(--white);}
+.unit-toggle{display:flex;gap:0;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.unit-btn{background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.unit-btn.active{background:var(--red);color:#fff;}
 `;
 
 function timeAgo(ts) {
@@ -484,6 +487,10 @@ function MeasurementsTab() {
   const [selectedId, setSelectedId] = useState('');
   const [measurements, setMeasurements] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [unit, setUnit] = useState('imperial');
+
+  const lbsToKg = v => v ? (parseFloat(v) * 0.453592).toFixed(1) : '';
+  const inToCm = v => v ? (parseFloat(v) * 2.54).toFixed(1) : '';
 
   useEffect(()=>{ loadClients(); },[]);
 
@@ -505,24 +512,36 @@ function MeasurementsTab() {
   }
 
   const fields = [
-    ['weight','Weight (lbs)'],['shoulders','Shoulders'],['chest','Chest'],
-    ['upper_arm_right','Bicep R'],['upper_arm_left','Bicep L'],
-    ['waist','Waist'],['hips','Hips'],
-    ['thigh_right','Thigh R'],['thigh_left','Thigh L'],
-    ['calf_right','Calf R'],['calf_left','Calf L'],
+    ['weight','Weight',true],['shoulders','Shoulders',false],['chest','Chest',false],
+    ['upper_arm_right','Bicep R',false],['upper_arm_left','Bicep L',false],
+    ['waist','Waist',false],['hips','Hips',false],
+    ['thigh_right','Thigh R',false],['thigh_left','Thigh L',false],
+    ['calf_right','Calf R',false],['calf_left','Calf L',false],
   ];
+
+  function displayVal(val, isWeight) {
+    if (!val) return '--';
+    if (unit === 'metric') return isWeight ? lbsToKg(val) : inToCm(val);
+    return val;
+  }
 
   return (
     <div>
       <div className="section-title">Measurements</div>
       <div className="section-sub">Client body measurements history</div>
       <div className="panel">
-        <div className="field" style={{marginBottom:16}}>
-          <label>Select Client</label>
-          <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
-            <option value="">-- Choose a client --</option>
-            {clients.map(c=><option key={c.id} value={c.id}>{c.name||c.email}</option>)}
-          </select>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:12,marginBottom:16}}>
+          <div className="field" style={{flex:1,marginBottom:0}}>
+            <label>Select Client</label>
+            <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
+              <option value="">-- Choose a client --</option>
+              {clients.map(c=><option key={c.id} value={c.id}>{c.name||c.email}</option>)}
+            </select>
+          </div>
+          <div className="unit-toggle">
+            <button className={`unit-btn${unit==='imperial'?' active':''}`} onClick={()=>setUnit('imperial')}>lbs/in</button>
+            <button className={`unit-btn${unit==='metric'?' active':''}`} onClick={()=>setUnit('metric')}>kg/cm</button>
+          </div>
         </div>
         {selectedId && (
           <div style={{overflowX:'auto'}}>
@@ -533,14 +552,14 @@ function MeasurementsTab() {
                 <thead>
                   <tr>
                     <th>Date</th>
-                    {fields.map(([k,l])=><th key={k}>{l}</th>)}
+                    {fields.map(([k,l,isW])=><th key={k}>{l} ({unit==='metric'?(isW?'kg':'cm'):(isW?'lbs':'in')})</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {measurements.map(m=>(
                     <tr key={m.id}>
                       <td style={{whiteSpace:'nowrap'}}>{new Date(m.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
-                      {fields.map(([k])=><td key={k}>{m[k]||'--'}</td>)}
+                      {fields.map(([k,l,isW])=><td key={k}>{displayVal(m[k],isW)}</td>)}
                     </tr>
                   ))}
                 </tbody>
