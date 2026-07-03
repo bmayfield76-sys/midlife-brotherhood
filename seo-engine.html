@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Brotherhood Content Engine — SEO Keywords &amp; Titles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--black:#0a0a0a;--dark:#111111;--card:#181818;--card2:#1f1f1f;--red:#cc2200;--red-light:#e63300;--grey:#888;--grey-light:#aaa;--white:#f0f0f0;--border:#2a2a2a;--blue:#4a90d9;--green:#5a9e3a;--gold:#c99a2e;--purple:#8a6fd1;}
+body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;}
+input,textarea,button,select{font-family:'Barlow',sans-serif;}
+.wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;line-height:1;}
+.logo span{color:var(--red);}
+.sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:4px;color:var(--red);text-transform:uppercase;margin:4px 0 8px;}
+.intro{font-size:14px;color:var(--grey-light);line-height:1.55;margin-bottom:24px;max-width:620px;}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin:0 0 10px;}
+.pillar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:20px;}
+.pillar-btn{padding:10px 4px;border:0.5px solid var(--border);border-radius:3px;background:var(--card);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-light);cursor:pointer;transition:all .15s;}
+.pillar-btn:hover{border-color:var(--grey);color:var(--white);}
+.pillar-btn.active{background:var(--red);border-color:var(--red);color:#fff;}
+.input-row{display:flex;gap:8px;margin-bottom:10px;}
+.input-row input{flex:1;padding:13px 16px;border:0.5px solid var(--border);border-radius:3px;background:var(--card);color:var(--white);font-size:15px;outline:none;transition:border-color .2s;}
+.input-row input:focus{border-color:var(--red);}
+.gen-btn{padding:13px 26px;background:var(--red);color:#fff;border:none;border-radius:3px;font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;cursor:pointer;white-space:nowrap;transition:background .2s;}
+.gen-btn:hover{background:var(--red-light);}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed;}
+.mode-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+.mode-row label{font-size:13px;color:var(--grey-light);display:flex;align-items:center;gap:7px;cursor:pointer;}
+.mode-row input[type=checkbox]{accent-color:var(--red);width:15px;height:15px;}
+.key-link{font-size:12px;color:var(--grey);text-decoration:underline;cursor:pointer;background:none;border:none;}
+.key-link:hover{color:var(--white);}
+.key-panel{background:var(--card);border:0.5px solid var(--border);border-radius:3px;padding:16px;margin:10px 0 16px;display:none;}
+.key-panel.open{display:block;}
+.key-panel p{font-size:13px;color:var(--grey-light);line-height:1.5;margin-bottom:10px;}
+.key-panel a{color:var(--red-light);}
+.key-input-row{display:flex;gap:8px;}
+.key-input-row input{flex:1;padding:10px 12px;border:0.5px solid var(--border);border-radius:3px;background:var(--black);color:var(--white);font-size:13px;outline:none;}
+.key-input-row button{padding:10px 16px;background:var(--card2);border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:13px;cursor:pointer;}
+.key-input-row button:hover{border-color:var(--grey);}
+.status{font-size:13px;color:var(--grey-light);margin:14px 0;min-height:20px;}
+.status.err{color:var(--red-light);}
+.results{display:flex;flex-direction:column;gap:14px;}
+.card{background:var(--card);border:0.5px solid var(--border);border-left:3px solid var(--red);border-radius:0 3px 3px 0;padding:18px 20px;}
+.card.blog{border-left-color:var(--blue);}
+.card.youtube{border-left-color:var(--green);}
+.card.meta{border-left-color:var(--gold);}
+.card.social{border-left-color:var(--purple);}
+.card.aeo{border-left-color:#3aa6a0;}
+.card-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--grey-light);margin-bottom:12px;}
+.card-hint{font-size:12px;color:var(--grey);line-height:1.5;margin:-6px 0 12px;}
+.items{display:flex;flex-direction:column;gap:8px;}
+.item{font-size:14px;line-height:1.5;padding:10px 12px;background:var(--card2);border-radius:3px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.item span{flex:1;}
+.item .q{color:var(--white);font-weight:600;display:block;}
+.item .a{color:var(--grey-light);display:block;margin-top:4px;font-size:13px;}
+.copy-btn{font-size:11px;color:var(--grey);background:none;border:0.5px solid var(--border);border-radius:3px;padding:3px 9px;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.copy-btn:hover{color:var(--white);border-color:var(--grey);}
+.copy-btn.copied{color:var(--green);border-color:var(--green);}
+.meta-count{font-size:12px;color:var(--grey);margin-top:8px;display:flex;justify-content:space-between;align-items:center;}
+pre.schema{background:var(--black);border:0.5px solid var(--border);border-radius:3px;padding:12px;font-size:11px;line-height:1.5;color:var(--grey-light);overflow-x:auto;white-space:pre-wrap;word-break:break-word;}
+.history-wrap{margin-top:24px;display:none;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{font-size:12px;padding:5px 12px;border:0.5px solid var(--border);border-radius:20px;background:var(--card);color:var(--grey-light);cursor:pointer;}
+.chip:hover{border-color:var(--red);color:var(--red-light);}
+.badge{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:2px;margin-left:8px;vertical-align:middle;}
+.badge.instant{background:var(--card2);color:var(--grey-light);border:0.5px solid var(--border);}
+.badge.ai{background:var(--red);color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">MIDLIFE <span>BROTHERHOOD</span></div>
+  <div class="sub">Content Engine</div>
+  <p class="intro">Enter a topic, pick a pillar, hit Generate. You get SEO keywords, blog titles, YouTube titles, a meta description for Rank Math, social hooks, and an AI-search (AEO) pack — question keywords, a citable answer paragraph, and FAQ schema so ChatGPT, Claude, and Perplexity can find and quote you. Works instantly out of the box; flip on AI mode with a Claude API key for smarter, topic-specific results.</p>
+
+  <div class="section-label">Pillar (optional)</div>
+  <div class="pillar-grid" id="pillars"></div>
+
+  <div class="section-label">Topic</div>
+  <div class="input-row">
+    <input type="text" id="topic" placeholder="e.g. testosterone, weight loss, discipline, divorce recovery..."/>
+    <button class="gen-btn" id="gen" onclick="generate()">Generate</button>
+  </div>
+
+  <div class="mode-row">
+    <label><input type="checkbox" id="ai-mode"/> AI mode (Claude — smarter, topic-specific results)</label>
+    <button class="key-link" onclick="toggleKeyPanel()">API key settings</button>
+  </div>
+  <div class="key-panel" id="key-panel">
+    <p>AI mode calls Claude directly from your browser. You need an Anthropic API key — get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> (requires adding a small credit balance). The key is saved only in this browser (localStorage) and is sent only to api.anthropic.com. Don't commit it anywhere or use this page on a shared computer.</p>
+    <div class="key-input-row">
+      <input type="password" id="api-key" placeholder="sk-ant-..."/>
+      <button onclick="saveKey()">Save</button>
+      <button onclick="clearKey()">Clear</button>
+    </div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="results" id="results"></div>
+
+  <div class="history-wrap" id="history-wrap">
+    <div class="section-label">Recent topics</div>
+    <div class="chips" id="chips"></div>
+  </div>
+</div>
+
+<script>
+const PILLARS = ['Body','Mind','Purpose','Finances','Relationships','Brotherhood'];
+let activePillar = '';
+let history = JSON.parse(localStorage.getItem('mb_seo_history') || '[]');
+
+const pillarsEl = document.getElementById('pillars');
+PILLARS.forEach(p => {
+  const b = document.createElement('button');
+  b.className = 'pillar-btn';
+  b.textContent = p;
+  b.onclick = () => {
+    activePillar = activePillar === p ? '' : p;
+    document.querySelectorAll('.pillar-btn').forEach(x =>
+      x.classList.toggle('active', x.textContent === activePillar));
+  };
+  pillarsEl.appendChild(b);
+});
+
+function toggleKeyPanel() {
+  document.getElementById('key-panel').classList.toggle('open');
+  document.getElementById('api-key').value = localStorage.getItem('mb_seo_api_key') || '';
+}
+function saveKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (k) {
+    localStorage.setItem('mb_seo_api_key', k);
+    document.getElementById('ai-mode').checked = true;
+    setStatus('API key saved. AI mode is on.');
+  }
+  document.getElementById('key-panel').classList.remove('open');
+}
+function clearKey() {
+  localStorage.removeItem('mb_seo_api_key');
+  document.getElementById('api-key').value = '';
+  document.getElementById('ai-mode').checked = false;
+  setStatus('API key removed.');
+}
+if (localStorage.getItem('mb_seo_api_key')) document.getElementById('ai-mode').checked = true;
+
+function setStatus(msg, isErr) {
+  const s = document.getElementById('status');
+  s.textContent = msg;
+  s.className = 'status' + (isErr ? ' err' : '');
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+function addToHistory(topic) {
+  history = [topic, ...history.filter(t => t !== topic)].slice(0, 8);
+  localStorage.setItem('mb_seo_history', JSON.stringify(history));
+  renderHistory();
+}
+function renderHistory() {
+  const wrap = document.getElementById('history-wrap');
+  const chips = document.getElementById('chips');
+  chips.innerHTML = '';
+  if (!history.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  history.forEach(t => {
+    const c = document.createElement('button');
+    c.className = 'chip';
+    c.textContent = t;
+    c.onclick = () => { document.getElementById('topic').value = t; generate(); };
+    chips.appendChild(c);
+  });
+}
+renderHistory();
+
+function titleCase(s) {
+  return s.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/* ---------- Instant (built-in) generator ---------- */
+
+const PILLAR_ANGLES = {
+  Body: { verb: 'rebuild your body', pain: 'a slowing metabolism and low energy', win: 'strength and energy' },
+  Mind: { verb: 'get your head right', pain: 'stress, brain fog, and feeling stuck', win: 'clarity and confidence' },
+  Purpose: { verb: 'find your mission', pain: 'feeling invisible and directionless', win: 'direction and drive' },
+  Finances: { verb: 'get your money right', pain: 'debt, lost time, and playing catch-up', win: 'financial control' },
+  Relationships: { verb: 'rebuild your relationships', pain: 'distance at home and drifting friendships', win: 'stronger connections' },
+  Brotherhood: { verb: 'build your circle', pain: 'isolation and having no one in your corner', win: 'real friendships' },
+};
+
+function instantGenerate(rawTopic, pillar) {
+  const t = rawTopic.toLowerCase();
+  const T = titleCase(rawTopic);
+  const angle = PILLAR_ANGLES[pillar] || { verb: 'take back control', pain: 'feeling stuck in midlife', win: 'momentum' };
+  const primary = `${t} for men over 40`;
+  return {
+    primary_keyword: primary,
+    keywords: [
+      primary,
+      `${t} after 40`,
+      `how to improve ${t} in your 40s`,
+      `${t} for middle aged men`,
+      `best ${t} tips for men over 50`,
+      `midlife ${t} for men`,
+    ],
+    blog_titles: [
+      `${T} After 40: The No-BS Guide for Men Who Want Results`,
+      `7 ${T} Mistakes Men Over 40 Keep Making (And How to Fix Them)`,
+      `${T} for Men Over 40: What Actually Works (From a Coach Who Lost 100 lbs)`,
+    ],
+    youtube_titles: [
+      `The Truth About ${T} After 40`,
+      `${T} Over 40: Stop Doing These 3 Things`,
+      `How I Fixed My ${T} in Midlife (Real Talk)`,
+    ],
+    meta_description: `Struggling with ${t} after 40? The no-fluff plan men 35–60 use to ${angle.verb} and get back ${angle.win}. Zero hype. Start today.`,
+    social_hooks: [
+      `Nobody is coming to save you. Your ${t} after 40 is your job now — and it's a job you can win.`,
+      `At 40+ the rules change. ${T} isn't about motivation anymore. It's about a system you run every day.`,
+      `I know ${angle.pain} feels normal at this age. It's common — it's not normal. Fix your ${t} and watch everything else move.`,
+    ],
+    ai_questions: [
+      `Is ${t} harder for men over 40?`,
+      `What is the best way for a man over 40 to improve ${t}?`,
+      `How long does it take to see ${t} results after 40?`,
+    ],
+    faq: [
+      {
+        question: `Is ${t} harder for men over 40?`,
+        answer: `Yes — after 40, ${t} gets harder because your body and life run by different rules than at 25. But harder isn't impossible. With the right system built for midlife men, most guys see real progress in 60–90 days.`,
+      },
+      {
+        question: `What is the best way for a man over 40 to improve ${t}?`,
+        answer: `Start with one daily non-negotiable habit tied to ${t}, track it for 30 days, and get accountability from other men doing the same. Consistency beats intensity every time after 40.`,
+      },
+      {
+        question: `How long does it take to see ${t} results after 40?`,
+        answer: `Most men over 40 notice a difference in ${t} within 4–6 weeks of consistent daily action, with major changes at the 90-day mark. The key is a sustainable system, not a 2-week sprint.`,
+      },
+    ],
+  };
+}
+
+/* ---------- AI (Claude) generator ---------- */
+
+const OUTPUT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['primary_keyword','keywords','blog_titles','youtube_titles','meta_description','social_hooks','ai_questions','faq'],
+  properties: {
+    primary_keyword: { type: 'string' },
+    keywords: { type: 'array', items: { type: 'string' } },
+    blog_titles: { type: 'array', items: { type: 'string' } },
+    youtube_titles: { type: 'array', items: { type: 'string' } },
+    meta_description: { type: 'string' },
+    social_hooks: { type: 'array', items: { type: 'string' } },
+    ai_questions: { type: 'array', items: { type: 'string' } },
+    faq: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['question','answer'],
+        properties: { question: { type: 'string' }, answer: { type: 'string' } },
+      },
+    },
+  },
+};
+
+async function aiGenerate(topic, pillar, apiKey) {
+  const pillarContext = pillar
+    ? `The content falls under the "${pillar}" pillar of the Midlife Brotherhood system.`
+    : 'The content relates to the Midlife Brotherhood brand covering body, mind, purpose, finances, relationships, and brotherhood.';
+
+  const prompt = `You are a content strategist and SEO/AEO expert for "The Midlife Brotherhood" — a men's development brand targeting men aged 35–60 going through major life transitions. The brand voice is direct, no-BS, Gen X, slightly urban, coach-to-man. The founder is Billy Mayfield, a nutritional coach and author who lost 100 lbs and raised his testosterone 71% naturally.
+
+Topic: "${topic}"
+${pillarContext}
+
+Generate:
+- primary_keyword: the single best focus keyword for Rank Math — 3-5 words, high intent, low competition
+- keywords: 6 specific long-tail phrases men 35–60 actually search (use age qualifiers like "after 40", "over 50", "midlife", "men over 40" where natural)
+- blog_titles: 3 SEO-optimized blog titles that start with the primary keyword or a power word
+- youtube_titles: 3 titles that create curiosity or promise a specific result, under 60 characters when possible
+- meta_description: 150–160 characters for the primary keyword with a subtle call to action
+- social_hooks: 3 short punchy Instagram hooks (1–2 sentences, no hashtags) that sound like a real man talking, not a motivational poster
+- ai_questions: 3 natural-language questions men 35–60 would type into ChatGPT, Claude, or Perplexity about this topic (these are the queries the content should rank for in AI answers)
+- faq: for each ai_question, a 2–3 sentence direct, quotable answer written so an AI assistant could cite it verbatim — lead with the answer, be specific, include the age context
+
+All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 3000,
+      output_config: { format: { type: 'json_schema', schema: OUTPUT_SCHEMA } },
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!resp.ok) {
+    let msg = `API error (${resp.status})`;
+    try {
+      const errBody = await resp.json();
+      if (errBody?.error?.message) msg = errBody.error.message;
+    } catch (_) {}
+    if (resp.status === 401) msg = 'Invalid API key. Check it in API key settings.';
+    if (resp.status === 429) msg = 'Rate limited by the API. Wait a minute and try again.';
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  if (data.stop_reason === 'refusal') throw new Error('Claude declined this topic. Try rephrasing it.');
+  const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  return JSON.parse(text);
+}
+
+/* ---------- Render ---------- */
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function itemRow(text) {
+  const div = document.createElement('div');
+  div.className = 'item';
+  const span = document.createElement('span');
+  span.textContent = text;
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'Copy';
+  btn.onclick = () => copyText(btn, text);
+  div.append(span, btn);
+  return div;
+}
+
+function buildFaqSchema(faq) {
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': faq.map(f => ({
+      '@type': 'Question',
+      'name': f.question,
+      'acceptedAnswer': { '@type': 'Answer', 'text': f.answer },
+    })),
+  }, null, 2);
+}
+
+function renderResults(d, mode) {
+  const results = document.getElementById('results');
+  results.innerHTML = '';
+
+  function card(cls, label, hint) {
+    const c = document.createElement('div');
+    c.className = 'card ' + cls;
+    const l = document.createElement('div');
+    l.className = 'card-label';
+    l.innerHTML = esc(label) + ` <span class="badge ${mode === 'ai' ? 'ai' : 'instant'}">${mode === 'ai' ? 'AI' : 'Instant'}</span>`;
+    c.appendChild(l);
+    if (hint) {
+      const h = document.createElement('div');
+      h.className = 'card-hint';
+      h.textContent = hint;
+      c.appendChild(h);
+    }
+    results.appendChild(c);
+    return c;
+  }
+
+  const kw = card('keywords', 'Keywords to target', 'Primary keyword first — use it in your title, first paragraph, and Rank Math focus keyword.');
+  const kwItems = document.createElement('div'); kwItems.className = 'items';
+  [d.primary_keyword, ...d.keywords.filter(k => k !== d.primary_keyword)].forEach(k => kwItems.appendChild(itemRow(k)));
+  kw.appendChild(kwItems);
+
+  const blog = card('blog', 'Blog post titles');
+  const blogItems = document.createElement('div'); blogItems.className = 'items';
+  d.blog_titles.forEach(t => blogItems.appendChild(itemRow(t)));
+  blog.appendChild(blogItems);
+
+  const yt = card('youtube', 'YouTube titles');
+  const ytItems = document.createElement('div'); ytItems.className = 'items';
+  d.youtube_titles.forEach(t => ytItems.appendChild(itemRow(t)));
+  yt.appendChild(ytItems);
+
+  const meta = card('meta', 'Meta description (Rank Math)');
+  const metaBox = document.createElement('div'); metaBox.className = 'item';
+  const metaSpan = document.createElement('span'); metaSpan.textContent = d.meta_description;
+  const metaBtn = document.createElement('button'); metaBtn.className = 'copy-btn'; metaBtn.textContent = 'Copy';
+  metaBtn.onclick = () => copyText(metaBtn, d.meta_description);
+  metaBox.append(metaSpan, metaBtn);
+  meta.appendChild(metaBox);
+  const count = document.createElement('div'); count.className = 'meta-count';
+  const len = d.meta_description.length;
+  count.textContent = `${len} characters ${len >= 140 && len <= 160 ? '✓ good length' : '(aim for 150–160)'}`;
+  meta.appendChild(count);
+
+  const social = card('social', 'Social media hooks');
+  const socialItems = document.createElement('div'); socialItems.className = 'items';
+  d.social_hooks.forEach(h => socialItems.appendChild(itemRow(h)));
+  social.appendChild(socialItems);
+
+  const aeo = card('aeo', 'AI search pack (show up in ChatGPT / Claude / Perplexity)',
+    'Answer these questions directly in your post — put each question as an H2 or H3 with the answer right below it, word for word. Then paste the FAQ schema into your post (Rank Math: Schema → Custom, or an HTML block) so AI assistants and Google can quote you.');
+  const aeoItems = document.createElement('div'); aeoItems.className = 'items';
+  d.faq.forEach(f => {
+    const div = document.createElement('div'); div.className = 'item';
+    const span = document.createElement('span');
+    const q = document.createElement('span'); q.className = 'q'; q.textContent = f.question;
+    const a = document.createElement('span'); a.className = 'a'; a.textContent = f.answer;
+    span.append(q, a);
+    const btn = document.createElement('button'); btn.className = 'copy-btn'; btn.textContent = 'Copy';
+    btn.onclick = () => copyText(btn, f.question + '\n\n' + f.answer);
+    div.append(span, btn);
+    aeoItems.appendChild(div);
+  });
+  aeo.appendChild(aeoItems);
+
+  const schemaLabel = document.createElement('div');
+  schemaLabel.className = 'card-label';
+  schemaLabel.style.marginTop = '14px';
+  schemaLabel.textContent = 'FAQ Schema (paste into your post)';
+  aeo.appendChild(schemaLabel);
+  const schemaText = '<script type="application/ld+json">\n' + buildFaqSchema(d.faq) + '\n<\/script>';
+  const pre = document.createElement('pre'); pre.className = 'schema'; pre.textContent = schemaText;
+  aeo.appendChild(pre);
+  const schemaBtn = document.createElement('button');
+  schemaBtn.className = 'copy-btn'; schemaBtn.textContent = 'Copy'; schemaBtn.style.marginTop = '8px';
+  schemaBtn.onclick = () => copyText(schemaBtn, schemaText);
+  aeo.appendChild(schemaBtn);
+}
+
+/* ---------- Main ---------- */
+
+async function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { setStatus('Enter a topic first.', true); return; }
+
+  const btn = document.getElementById('gen');
+  const useAI = document.getElementById('ai-mode').checked;
+  const apiKey = localStorage.getItem('mb_seo_api_key') || '';
+
+  if (useAI && !apiKey) {
+    setStatus('AI mode needs an API key — add one in API key settings, or uncheck AI mode.', true);
+    document.getElementById('key-panel').classList.add('open');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Working...';
+  document.getElementById('results').innerHTML = '';
+
+  try {
+    let data, mode;
+    if (useAI) {
+      setStatus('Asking Claude to work your topic...');
+      data = await aiGenerate(topic, activePillar, apiKey);
+      mode = 'ai';
+    } else {
+      data = instantGenerate(topic, activePillar);
+      mode = 'instant';
+    }
+    addToHistory(topic);
+    setStatus(`Primary keyword: "${data.primary_keyword}"`);
+    renderResults(data, mode);
+  } catch (err) {
+    setStatus(err.message || 'Something went wrong. Try again.', true);
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate';
+  }
+}
+
+document.getElementById('topic').addEventListener('keydown', e => {
+  if (e.key === 'Enter') generate();
+});
+</script>
+</body>
+</html>
