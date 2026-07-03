@@ -112,6 +112,48 @@ const styles = `
 .unit-toggle{display:flex;gap:0;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;}
 .unit-btn{background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
 .unit-btn.active{background:var(--red);color:#fff;}
+.ce-pillar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:16px;}
+.ce-pillar-btn{padding:10px 4px;border:0.5px solid var(--border);border-radius:3px;background:var(--card2);font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-light);cursor:pointer;transition:all .15s;}
+.ce-pillar-btn:hover{border-color:var(--grey);color:var(--white);}
+.ce-pillar-btn.active{background:var(--red);border-color:var(--red);color:#fff;}
+.ce-input-row{display:flex;gap:8px;margin-bottom:10px;}
+.ce-input-row input{flex:1;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:15px;padding:12px 14px;outline:none;}
+.ce-input-row input:focus{border-color:var(--red);}
+.ce-mode-row{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap;}
+.ce-mode-row label{font-size:13px;color:var(--grey-light);display:flex;align-items:center;gap:7px;cursor:pointer;}
+.ce-mode-row input[type=checkbox]{accent-color:var(--red);width:15px;height:15px;}
+.ce-key-link{font-size:12px;color:var(--grey);text-decoration:underline;cursor:pointer;background:none;border:none;}
+.ce-key-link:hover{color:var(--white);}
+.ce-key-panel{background:var(--card2);border:0.5px solid var(--border);border-radius:3px;padding:14px;margin:10px 0;}
+.ce-key-panel p{font-size:12px;color:var(--grey-light);line-height:1.5;margin-bottom:10px;}
+.ce-key-panel a{color:var(--red-light);}
+.ce-key-input-row{display:flex;gap:8px;}
+.ce-key-input-row input{flex:1;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:13px;padding:9px 11px;outline:none;}
+.ce-status{font-size:13px;color:var(--grey-light);margin:12px 0;min-height:18px;}
+.ce-status.err{color:var(--red-light);}
+.ce-card{background:var(--card);border:0.5px solid var(--border);border-left:3px solid var(--red);border-radius:0 3px 3px 0;padding:16px 18px;margin-bottom:12px;}
+.ce-card.blog{border-left-color:#4a90d9;}
+.ce-card.youtube{border-left-color:#5a9e3a;}
+.ce-card.meta{border-left-color:#c99a2e;}
+.ce-card.social{border-left-color:#8a6fd1;}
+.ce-card.aeo{border-left-color:#3aa6a0;}
+.ce-card-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--grey-light);margin-bottom:10px;}
+.ce-card-hint{font-size:12px;color:var(--grey);line-height:1.5;margin:-4px 0 10px;}
+.ce-item{font-size:14px;line-height:1.5;padding:9px 11px;background:var(--card2);border-radius:3px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:7px;}
+.ce-item>span{flex:1;}
+.ce-item .q{color:var(--white);font-weight:600;display:block;}
+.ce-item .a{color:var(--grey-light);display:block;margin-top:4px;font-size:13px;}
+.ce-copy{font-size:11px;color:var(--grey);background:none;border:0.5px solid var(--border);border-radius:3px;padding:3px 9px;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-top:2px;}
+.ce-copy:hover{color:var(--white);border-color:var(--grey);}
+.ce-copy.copied{color:var(--green-light);border-color:var(--green-light);}
+.ce-count{font-size:12px;color:var(--grey);margin-top:6px;}
+.ce-schema{background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;padding:12px;font-size:11px;line-height:1.5;color:var(--grey-light);overflow-x:auto;white-space:pre-wrap;word-break:break-word;font-family:monospace;}
+.ce-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;}
+.ce-chip{font-size:12px;padding:4px 12px;border:0.5px solid var(--border);border-radius:20px;background:var(--card2);color:var(--grey-light);cursor:pointer;}
+.ce-chip:hover{border-color:var(--red);color:var(--red-light);}
+.ce-badge{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:2px;margin-left:8px;vertical-align:middle;}
+.ce-badge.instant{background:var(--card2);color:var(--grey-light);border:0.5px solid var(--border);}
+.ce-badge.ai{background:var(--red);color:#fff;}
 `;
 
 function timeAgo(ts) {
@@ -645,6 +687,287 @@ function PhotosTab() {
   );
 }
 
+/* ================= Content Engine (SEO keywords, titles & AEO) ================= */
+
+const CE_PILLARS = ['Body','Mind','Purpose','Finances','Relationships','Brotherhood'];
+
+const CE_PILLAR_ANGLES = {
+  Body: { verb: 'rebuild your body', pain: 'a slowing metabolism and low energy', win: 'strength and energy' },
+  Mind: { verb: 'get your head right', pain: 'stress, brain fog, and feeling stuck', win: 'clarity and confidence' },
+  Purpose: { verb: 'find your mission', pain: 'feeling invisible and directionless', win: 'direction and drive' },
+  Finances: { verb: 'get your money right', pain: 'debt, lost time, and playing catch-up', win: 'financial control' },
+  Relationships: { verb: 'rebuild your relationships', pain: 'distance at home and drifting friendships', win: 'stronger connections' },
+  Brotherhood: { verb: 'build your circle', pain: 'isolation and having no one in your corner', win: 'real friendships' },
+};
+
+function ceTitleCase(s) { return s.replace(/\b\w/g, c => c.toUpperCase()); }
+
+function ceInstantGenerate(rawTopic, pillar) {
+  const t = rawTopic.toLowerCase();
+  const T = ceTitleCase(rawTopic);
+  const angle = CE_PILLAR_ANGLES[pillar] || { verb: 'take back control', pain: 'feeling stuck in midlife', win: 'momentum' };
+  const primary = `${t} for men over 40`;
+  return {
+    primary_keyword: primary,
+    keywords: [primary, `${t} after 40`, `how to improve ${t} in your 40s`, `${t} for middle aged men`, `best ${t} tips for men over 50`, `midlife ${t} for men`],
+    blog_titles: [
+      `${T} After 40: The No-BS Guide for Men Who Want Results`,
+      `7 ${T} Mistakes Men Over 40 Keep Making (And How to Fix Them)`,
+      `${T} for Men Over 40: What Actually Works (From a Coach Who Lost 100 lbs)`,
+    ],
+    youtube_titles: [
+      `The Truth About ${T} After 40`,
+      `${T} Over 40: Stop Doing These 3 Things`,
+      `How I Fixed My ${T} in Midlife (Real Talk)`,
+    ],
+    meta_description: `Struggling with ${t} after 40? The no-fluff plan men 35–60 use to ${angle.verb} and get back ${angle.win}. Zero hype. Start today.`,
+    social_hooks: [
+      `Nobody is coming to save you. Your ${t} after 40 is your job now — and it's a job you can win.`,
+      `At 40+ the rules change. ${T} isn't about motivation anymore. It's about a system you run every day.`,
+      `I know ${angle.pain} feels normal at this age. It's common — it's not normal. Fix your ${t} and watch everything else move.`,
+    ],
+    faq: [
+      { question: `Is ${t} harder for men over 40?`,
+        answer: `Yes — after 40, ${t} gets harder because your body and life run by different rules than at 25. But harder isn't impossible. With the right system built for midlife men, most guys see real progress in 60–90 days.` },
+      { question: `What is the best way for a man over 40 to improve ${t}?`,
+        answer: `Start with one daily non-negotiable habit tied to ${t}, track it for 30 days, and get accountability from other men doing the same. Consistency beats intensity every time after 40.` },
+      { question: `How long does it take to see ${t} results after 40?`,
+        answer: `Most men over 40 notice a difference in ${t} within 4–6 weeks of consistent daily action, with major changes at the 90-day mark. The key is a sustainable system, not a 2-week sprint.` },
+    ],
+  };
+}
+
+const CE_OUTPUT_SCHEMA = {
+  type: 'object', additionalProperties: false,
+  required: ['primary_keyword','keywords','blog_titles','youtube_titles','meta_description','social_hooks','faq'],
+  properties: {
+    primary_keyword: { type: 'string' },
+    keywords: { type: 'array', items: { type: 'string' } },
+    blog_titles: { type: 'array', items: { type: 'string' } },
+    youtube_titles: { type: 'array', items: { type: 'string' } },
+    meta_description: { type: 'string' },
+    social_hooks: { type: 'array', items: { type: 'string' } },
+    faq: { type: 'array', items: { type: 'object', additionalProperties: false,
+      required: ['question','answer'],
+      properties: { question: { type: 'string' }, answer: { type: 'string' } } } },
+  },
+};
+
+async function ceAiGenerate(topic, pillar, apiKey) {
+  const pillarContext = pillar
+    ? `The content falls under the "${pillar}" pillar of the Midlife Brotherhood system.`
+    : 'The content relates to the Midlife Brotherhood brand covering body, mind, purpose, finances, relationships, and brotherhood.';
+
+  const prompt = `You are a content strategist and SEO/AEO expert for "The Midlife Brotherhood" — a men's development brand targeting men aged 35–60 going through major life transitions. The brand voice is direct, no-BS, Gen X, slightly urban, coach-to-man. The founder is Billy Mayfield, a nutritional coach and author who lost 100 lbs and raised his testosterone 71% naturally.
+
+Topic: "${topic}"
+${pillarContext}
+
+Generate:
+- primary_keyword: the single best focus keyword for Rank Math — 3-5 words, high intent, low competition
+- keywords: 6 specific long-tail phrases men 35–60 actually search (use age qualifiers like "after 40", "over 50", "midlife", "men over 40" where natural)
+- blog_titles: 3 SEO-optimized blog titles that start with the primary keyword or a power word
+- youtube_titles: 3 titles that create curiosity or promise a specific result, under 60 characters when possible
+- meta_description: 150–160 characters for the primary keyword with a subtle call to action
+- social_hooks: 3 short punchy Instagram hooks (1–2 sentences, no hashtags) that sound like a real man talking, not a motivational poster
+- faq: 3 question/answer pairs — the questions are what men 35–60 would type into ChatGPT, Claude, or Perplexity about this topic; each answer is 2–3 sentences, direct and quotable so an AI assistant could cite it verbatim — lead with the answer, be specific, include the age context
+
+All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 3000,
+      output_config: { format: { type: 'json_schema', schema: CE_OUTPUT_SCHEMA } },
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!resp.ok) {
+    let msg = `API error (${resp.status})`;
+    try { const b = await resp.json(); if (b?.error?.message) msg = b.error.message; } catch (_) {}
+    if (resp.status === 401) msg = 'Invalid API key. Check it in API key settings.';
+    if (resp.status === 429) msg = 'Rate limited by the API. Wait a minute and try again.';
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  if (data.stop_reason === 'refusal') throw new Error('Claude declined this topic. Try rephrasing it.');
+  const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  return JSON.parse(text);
+}
+
+function ceBuildFaqSchema(faq) {
+  const json = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    'mainEntity': faq.map(f => ({
+      '@type': 'Question', 'name': f.question,
+      'acceptedAnswer': { '@type': 'Answer', 'text': f.answer },
+    })),
+  }, null, 2);
+  return '<' + 'script type="application/ld+json">\n' + json + '\n<' + '/script>';
+}
+
+function CeCopyBtn({ text }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button className={`ce-copy${copied?' copied':''}`} onClick={()=>{
+      navigator.clipboard.writeText(text).then(()=>{
+        setCopied(true); setTimeout(()=>setCopied(false), 1500);
+      });
+    }}>{copied?'Copied':'Copy'}</button>
+  );
+}
+
+function CeItem({ text }) {
+  return <div className="ce-item"><span>{text}</span><CeCopyBtn text={text}/></div>;
+}
+
+function CeCard({ cls, label, hint, mode, children }) {
+  return (
+    <div className={`ce-card ${cls}`}>
+      <div className="ce-card-label">{label} <span className={`ce-badge ${mode==='ai'?'ai':'instant'}`}>{mode==='ai'?'AI':'Instant'}</span></div>
+      {hint && <div className="ce-card-hint">{hint}</div>}
+      {children}
+    </div>
+  );
+}
+
+function ContentTab() {
+  const [pillar, setPillar] = useState('');
+  const [topic, setTopic] = useState('');
+  const [useAI, setUseAI] = useState(!!localStorage.getItem('mb_seo_api_key'));
+  const [keyOpen, setKeyOpen] = useState(false);
+  const [keyDraft, setKeyDraft] = useState('');
+  const [status, setStatus] = useState('');
+  const [isErr, setIsErr] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState(null);
+  const [mode, setMode] = useState('instant');
+  const [history, setHistory] = useState(()=>JSON.parse(localStorage.getItem('mb_seo_history')||'[]'));
+
+  function note(msg, err) { setStatus(msg); setIsErr(!!err); }
+
+  function saveKey() {
+    const k = keyDraft.trim();
+    if (k) { localStorage.setItem('mb_seo_api_key', k); setUseAI(true); note('API key saved. AI mode is on.'); }
+    setKeyOpen(false);
+  }
+  function clearKey() {
+    localStorage.removeItem('mb_seo_api_key'); setKeyDraft(''); setUseAI(false); note('API key removed.');
+  }
+
+  async function generate(overrideTopic) {
+    const t = (overrideTopic ?? topic).trim();
+    if (!t) { note('Enter a topic first.', true); return; }
+    const apiKey = localStorage.getItem('mb_seo_api_key') || '';
+    if (useAI && !apiKey) {
+      note('AI mode needs an API key — add one in API key settings, or uncheck AI mode.', true);
+      setKeyOpen(true); return;
+    }
+    setBusy(true); setResult(null);
+    try {
+      let data, m;
+      if (useAI) { note('Asking Claude to work your topic...'); data = await ceAiGenerate(t, pillar, apiKey); m = 'ai'; }
+      else { data = ceInstantGenerate(t, pillar); m = 'instant'; }
+      const h = [t, ...history.filter(x=>x!==t)].slice(0,8);
+      setHistory(h); localStorage.setItem('mb_seo_history', JSON.stringify(h));
+      note(`Primary keyword: "${data.primary_keyword}"`);
+      setResult(data); setMode(m);
+    } catch (err) {
+      note(err.message || 'Something went wrong. Try again.', true);
+    } finally { setBusy(false); }
+  }
+
+  const metaLen = result ? result.meta_description.length : 0;
+  const faqSchema = result ? ceBuildFaqSchema(result.faq) : '';
+
+  return (
+    <div>
+      <div className="section-title">Content Engine</div>
+      <div className="section-sub">SEO keywords, titles & AI-search pack</div>
+      <div className="panel">
+        <div className="panel-title">Pillar (optional)</div>
+        <div className="ce-pillar-grid">
+          {CE_PILLARS.map(p=>(
+            <button key={p} className={`ce-pillar-btn${pillar===p?' active':''}`}
+              onClick={()=>setPillar(pillar===p?'':p)}>{p}</button>
+          ))}
+        </div>
+        <div className="ce-input-row">
+          <input placeholder="e.g. testosterone, weight loss, discipline, divorce recovery..."
+            value={topic} onChange={e=>setTopic(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&generate()}/>
+          <button className="btn-red" onClick={()=>generate()} disabled={busy}>{busy?'Working...':'Generate'}</button>
+        </div>
+        <div className="ce-mode-row">
+          <label><input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)}/> AI mode (Claude — smarter, topic-specific results)</label>
+          <button className="ce-key-link" onClick={()=>{ setKeyOpen(!keyOpen); setKeyDraft(localStorage.getItem('mb_seo_api_key')||''); }}>API key settings</button>
+        </div>
+        {keyOpen && (
+          <div className="ce-key-panel">
+            <p>AI mode calls Claude directly from your browser. Get an API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> (requires a small credit balance). The key is saved only in this browser and sent only to api.anthropic.com.</p>
+            <div className="ce-key-input-row">
+              <input type="password" placeholder="sk-ant-..." value={keyDraft} onChange={e=>setKeyDraft(e.target.value)}/>
+              <button className="btn-grey" onClick={saveKey}>Save</button>
+              <button className="btn-grey" onClick={clearKey}>Clear</button>
+            </div>
+          </div>
+        )}
+        <div className={`ce-status${isErr?' err':''}`}>{status}</div>
+        {history.length>0 && !result && (
+          <div className="ce-chips">
+            {history.map(t=>(
+              <button key={t} className="ce-chip" onClick={()=>{ setTopic(t); generate(t); }}>{t}</button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {result && (
+        <div>
+          <CeCard cls="keywords" label="Keywords to target" mode={mode}
+            hint="Primary keyword first — use it in your title, first paragraph, and Rank Math focus keyword.">
+            {[result.primary_keyword, ...result.keywords.filter(k=>k!==result.primary_keyword)].map((k,i)=><CeItem key={i} text={k}/>)}
+          </CeCard>
+          <CeCard cls="blog" label="Blog post titles" mode={mode}>
+            {result.blog_titles.map((t,i)=><CeItem key={i} text={t}/>)}
+          </CeCard>
+          <CeCard cls="youtube" label="YouTube titles" mode={mode}>
+            {result.youtube_titles.map((t,i)=><CeItem key={i} text={t}/>)}
+          </CeCard>
+          <CeCard cls="meta" label="Meta description (Rank Math)" mode={mode}>
+            <CeItem text={result.meta_description}/>
+            <div className="ce-count">{metaLen} characters {metaLen>=140&&metaLen<=160?'✓ good length':'(aim for 150–160)'}</div>
+          </CeCard>
+          <CeCard cls="social" label="Social media hooks" mode={mode}>
+            {result.social_hooks.map((h,i)=><CeItem key={i} text={h}/>)}
+          </CeCard>
+          <CeCard cls="aeo" label="AI search pack (ChatGPT / Claude / Perplexity)" mode={mode}
+            hint="Answer these questions in your post — each question as an H2 or H3 with the answer right below it, word for word. Then paste the FAQ schema into the post (Rank Math: Schema → Custom, or an HTML block) so AI assistants and Google can quote you.">
+            {result.faq.map((f,i)=>(
+              <div key={i} className="ce-item">
+                <span><span className="q">{f.question}</span><span className="a">{f.answer}</span></span>
+                <CeCopyBtn text={f.question+'\n\n'+f.answer}/>
+              </div>
+            ))}
+            <div className="ce-card-label" style={{marginTop:14}}>FAQ Schema (paste into your post)</div>
+            <pre className="ce-schema">{faqSchema}</pre>
+            <div style={{marginTop:8}}><CeCopyBtn text={faqSchema}/></div>
+          </CeCard>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -676,6 +999,7 @@ function App() {
     {key:'checkins',label:'Check-ins'},
     {key:'measurements',label:'Measurements'},
     {key:'photos',label:'Photos'},
+    {key:'content',label:'Content Engine'},
   ];
 
   return (
@@ -699,6 +1023,7 @@ function App() {
         {tab==='checkins' && <CheckinsTab/>}
         {tab==='measurements' && <MeasurementsTab/>}
         {tab==='photos' && <PhotosTab/>}
+        {tab==='content' && <ContentTab/>}
       </div>
     </div>
   );
