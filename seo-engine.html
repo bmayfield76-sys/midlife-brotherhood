@@ -28,6 +28,13 @@ input,textarea,button,select{font-family:'Barlow',sans-serif;}
 .translate-pillar{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;background:var(--red);color:#fff;border-radius:2px;padding:3px 10px;margin-right:8px;}
 .translate-kw{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--white);margin:10px 0 8px;}
 .translate-angle{font-size:14px;color:var(--grey-light);line-height:1.55;}
+.kw-options{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.kw-option{text-align:left;width:100%;background:var(--card);border:0.5px solid var(--border);border-left:2px solid var(--border);border-radius:3px;padding:11px 14px;cursor:pointer;transition:all .15s;font-family:'Barlow',sans-serif;}
+.kw-option:hover{border-color:var(--grey);}
+.kw-option.active{border-color:var(--red);border-left:2px solid var(--red);background:#241717;}
+.kw-option .kw{display:block;font-size:15px;color:var(--white);font-weight:600;}
+.kw-option .why{display:block;font-size:12px;color:var(--grey-light);margin-top:3px;line-height:1.45;}
+.kw-option .rec{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;background:var(--red);color:#fff;border-radius:2px;padding:1px 6px;margin-left:8px;vertical-align:middle;}
 .pillar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:20px;}
 .pillar-btn{padding:10px 4px;border:0.5px solid var(--border);border-radius:3px;background:var(--card);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-light);cursor:pointer;transition:all .15s;}
 .pillar-btn:hover{border-color:var(--grey);color:var(--white);}
@@ -135,6 +142,8 @@ pre.schema{background:var(--black);border:0.5px solid var(--border);border-radiu
 const PILLARS = ['Body','Mind','Purpose','Finances','Relationships','Brotherhood'];
 let activePillar = '';
 let history = JSON.parse(localStorage.getItem('mb_seo_history') || '[]');
+let lastIdea = null;   // full idea result (pillar, interpretation, keyword_options)
+let lastResult = null; // most recently rendered pack (for tracking the selected keyword)
 
 const pillarsEl = document.getElementById('pillars');
 PILLARS.forEach(p => {
@@ -299,10 +308,14 @@ const OUTPUT_SCHEMA = {
   },
 };
 
-async function aiGenerate(topic, pillar, apiKey) {
+async function aiGenerate(topic, pillar, apiKey, forcedKeyword) {
   const pillarContext = pillar
     ? `The content falls under the "${pillar}" pillar of the Midlife Brotherhood system.`
     : 'The content relates to the Midlife Brotherhood brand covering body, mind, purpose, finances, relationships, and brotherhood.';
+
+  const kwRule = forcedKeyword
+    ? `- primary_keyword: use EXACTLY this phrase, word for word, do not change or improve it: "${forcedKeyword}". Build everything below around it.`
+    : `- primary_keyword: the single best focus keyword for Rank Math — 3-5 words, high intent, low competition`;
 
   const prompt = `You are a content strategist and SEO/AEO expert for "The Midlife Brotherhood" — a men's development brand targeting men aged 35–60 going through major life transitions. The brand voice is direct, no-BS, Gen X, slightly urban, coach-to-man. The founder is Billy Mayfield, a nutritional coach and author who lost 100 lbs and raised his testosterone 71% naturally.
 
@@ -310,7 +323,7 @@ Topic: "${topic}"
 ${pillarContext}
 
 Generate:
-- primary_keyword: the single best focus keyword for Rank Math — 3-5 words, high intent, low competition
+${kwRule}
 - keywords: 6 specific long-tail phrases men 35–60 actually search (use age qualifiers like "after 40", "over 50", "midlife", "men over 40" where natural)
 - blog_titles: 3 SEO-optimized blog titles that start with the primary keyword or a power word
 - youtube_titles: 3 titles that create curiosity or promise a specific result, under 60 characters when possible
@@ -359,11 +372,19 @@ All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
 const IDEA_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['pillar','interpretation','primary_keyword','keywords','blog_titles','youtube_titles','meta_description','social_hooks','ai_questions','faq'],
+  required: ['pillar','interpretation','keyword_options','keywords','blog_titles','youtube_titles','meta_description','social_hooks','ai_questions','faq'],
   properties: {
     pillar: { type: 'string', enum: ['Body','Mind','Purpose','Finances','Relationships','Brotherhood'] },
     interpretation: { type: 'string' },
-    primary_keyword: { type: 'string' },
+    keyword_options: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['keyword','why'],
+        properties: { keyword: { type: 'string' }, why: { type: 'string' } },
+      },
+    },
     keywords: { type: 'array', items: { type: 'string' } },
     blog_titles: { type: 'array', items: { type: 'string' } },
     youtube_titles: { type: 'array', items: { type: 'string' } },
@@ -402,17 +423,17 @@ The writer's problem: their ideas have great emotional titles but terrible SEO. 
 
 Do this:
 1. pillar: pick the ONE best-fitting pillar from the six above.
-2. interpretation: 1–2 sentences, written directly to the writer ("Your idea is really about..."), naming the emotional theme AND the searchable angle, so they understand why you chose this pillar and keyword.
-3. primary_keyword: the single best focus keyword for Rank Math — 3-5 words, high search intent, low competition, phrased the way a man 35–60 would actually search it (not the poetic title). Follow the "how to find yourself again as a man" style: plain-language, problem-first.
-4. keywords: 6 specific long-tail phrases men 35–60 actually search around this idea (use age qualifiers like "after 40", "over 50", "midlife", "as a man" where natural).
-5. blog_titles: 3 SEO-optimized titles that start with the primary keyword or a power word — but keep the emotional punch of the original idea where you can.
+2. interpretation: 1–2 sentences, written directly to the writer ("Your idea is really about..."), naming the emotional theme AND the searchable angle, so they understand why you chose this pillar and these keywords.
+3. keyword_options: EXACTLY 3 focus-keyword candidates, ranked best first. Each is an object with "keyword" (3-5 words, high search intent, low competition, phrased the way a man 35–60 would actually search it — plain-language, problem-first, following the "how to find yourself again as a man" style, NOT the poetic title) and "why" (one short phrase on who searches it / why it fits, e.g. "highest intent — what most men type" or "broader reach, a bit more competition"). Give genuinely different angles, not three rewordings of the same phrase.
+4. keywords: 6 specific long-tail phrases men 35–60 actually search around this idea, built around keyword_options[0] (the top pick). Use age qualifiers like "after 40", "over 50", "midlife", "as a man" where natural.
+5. blog_titles: 3 SEO-optimized titles built around keyword_options[0] that start with it or a power word — but keep the emotional punch of the original idea where you can.
 6. youtube_titles: 3 titles that create curiosity or promise a specific result, under 60 characters when possible.
-7. meta_description: 150–160 characters for the primary keyword with a subtle call to action.
+7. meta_description: 150–160 characters for keyword_options[0] with a subtle call to action.
 8. social_hooks: 3 short punchy Instagram hooks (1–2 sentences, no hashtags) that sound like a real man talking, not a motivational poster.
 9. ai_questions: 3 natural-language questions men 35–60 would type into ChatGPT, Claude, or Perplexity about this idea.
 10. faq: for each ai_question, a 2–3 sentence direct, quotable answer an AI assistant could cite verbatim — lead with the answer, be specific, include the age context.
 
-All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
+Everything from keywords onward is built around keyword_options[0]; the writer can pick a different option afterward to rebuild. All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
 
   const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -498,11 +519,49 @@ function renderResults(d, mode) {
   if (d.pillar && d.interpretation) {
     const tc = document.createElement('div');
     tc.className = 'card translate';
-    tc.innerHTML =
-      `<div class="card-label">What I did with your idea <span class="badge ai">AI</span></div>` +
-      `<div><span class="translate-pillar">${esc(d.pillar)}</span></div>` +
-      `<div class="translate-kw">${esc(d.primary_keyword)}</div>` +
-      `<div class="translate-angle">${esc(d.interpretation)}</div>`;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'card-label';
+    lbl.innerHTML = 'What I did with your idea <span class="badge ai">AI</span>';
+    tc.appendChild(lbl);
+
+    const pill = document.createElement('div');
+    pill.innerHTML = `<span class="translate-pillar">${esc(d.pillar)}</span>`;
+    tc.appendChild(pill);
+
+    const angle = document.createElement('div');
+    angle.className = 'translate-angle';
+    angle.style.margin = '10px 0 14px';
+    angle.textContent = d.interpretation;
+    tc.appendChild(angle);
+
+    if (d.keyword_options && d.keyword_options.length) {
+      const pick = document.createElement('div');
+      pick.className = 'section-label';
+      pick.style.margin = '0 0 8px';
+      pick.textContent = 'Pick the keyword to build around';
+      tc.appendChild(pick);
+
+      const opts = document.createElement('div');
+      opts.className = 'kw-options';
+      d.keyword_options.forEach((o, i) => {
+        const row = document.createElement('button');
+        const isActive = o.keyword === d.primary_keyword;
+        row.className = 'kw-option' + (isActive ? ' active' : '');
+        row.innerHTML =
+          `<span class="kw">${esc(o.keyword)}${i === 0 ? '<span class="rec">Top pick</span>' : ''}</span>` +
+          (o.why ? `<span class="why">${esc(o.why)}</span>` : '');
+        row.onclick = () => selectKeyword(i);
+        opts.appendChild(row);
+      });
+      tc.appendChild(opts);
+    } else {
+      const kwLine = document.createElement('div');
+      kwLine.className = 'translate-kw';
+      kwLine.textContent = d.primary_keyword;
+      tc.appendChild(kwLine);
+    }
+
     results.appendChild(tc);
   }
 
@@ -606,8 +665,10 @@ async function generate() {
         return;
       }
       ideaBtn.disabled = true; ideaBtn.textContent = 'Working...';
-      setStatus('Reading your idea and finding the pillar and keyword...');
+      setStatus('Reading your idea and finding the pillar and keywords...');
       data = await aiIdeaGenerate(idea, apiKey);
+      data.primary_keyword = (data.keyword_options && data.keyword_options[0]) ? data.keyword_options[0].keyword : '';
+      lastIdea = data;
       mode = 'ai';
       historyLabel = data.primary_keyword;
     } else {
@@ -629,7 +690,8 @@ async function generate() {
       }
       historyLabel = topic;
     }
-    addToHistory(historyLabel);
+    if (historyLabel) addToHistory(historyLabel);
+    lastResult = data;
     setStatus(`Primary keyword: "${data.primary_keyword}"`);
     renderResults(data, mode);
   } catch (err) {
@@ -638,6 +700,28 @@ async function generate() {
   } finally {
     topicBtn.disabled = false; topicBtn.textContent = 'Generate';
     ideaBtn.disabled = false; ideaBtn.textContent = 'Generate';
+  }
+}
+
+async function selectKeyword(idx) {
+  if (!lastIdea || !lastIdea.keyword_options || !lastIdea.keyword_options[idx]) return;
+  const chosen = lastIdea.keyword_options[idx].keyword;
+  if (lastResult && chosen === lastResult.primary_keyword) return; // already selected
+  const apiKey = localStorage.getItem('mb_seo_api_key') || '';
+  if (!apiKey) { setStatus('Need an API key to rebuild.', true); return; }
+  setStatus(`Rebuilding around "${chosen}"...`);
+  try {
+    const data = await aiGenerate(chosen, lastIdea.pillar, apiKey, chosen);
+    data.pillar = lastIdea.pillar;
+    data.interpretation = lastIdea.interpretation;
+    data.keyword_options = lastIdea.keyword_options;
+    data.primary_keyword = chosen;
+    lastResult = data;
+    setStatus(`Primary keyword: "${chosen}"`);
+    renderResults(data, 'ai');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    setStatus(err.message || 'Rebuild failed.', true);
   }
 }
 
