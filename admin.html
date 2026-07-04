@@ -942,18 +942,27 @@ function CeCard({ cls, label, hint, mode, children }) {
 }
 
 function ContentTab() {
-  const [inputMode, setInputMode] = useState('topic'); // 'topic' | 'idea'
-  const [pillar, setPillar] = useState('');
-  const [topic, setTopic] = useState('');
-  const [idea, setIdea] = useState('');
+  // Restore the last session so results survive tab switches and reloads.
+  const SAVED = (()=>{ try { return JSON.parse(localStorage.getItem('mb_ce_state')||'{}'); } catch(_) { return {}; } })();
+
+  const [inputMode, setInputMode] = useState(SAVED.inputMode || 'topic'); // 'topic' | 'idea'
+  const [pillar, setPillar] = useState(SAVED.pillar || '');
+  const [topic, setTopic] = useState(SAVED.topic || '');
+  const [idea, setIdea] = useState(SAVED.idea || '');
   const [useAI, setUseAI] = useState(!!localStorage.getItem('mb_seo_api_key'));
   const [keyOpen, setKeyOpen] = useState(false);
   const [keyDraft, setKeyDraft] = useState('');
-  const [status, setStatus] = useState('');
+  const [status, setStatus] = useState(SAVED.result ? `Primary keyword: "${SAVED.result.primary_keyword}"` : '');
   const [isErr, setIsErr] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState(null);
-  const [mode, setMode] = useState('instant');
+  const [result, setResult] = useState(SAVED.result || null);
+  const [mode, setMode] = useState(SAVED.mode || 'instant');
+
+  useEffect(()=>{
+    try {
+      localStorage.setItem('mb_ce_state', JSON.stringify({ inputMode, pillar, topic, idea, result, mode }));
+    } catch(_) {}
+  }, [inputMode, pillar, topic, idea, result, mode]);
   const [history, setHistory] = useState(()=>JSON.parse(localStorage.getItem('mb_seo_history')||'[]'));
 
   function note(msg, err) { setStatus(msg); setIsErr(!!err); }
