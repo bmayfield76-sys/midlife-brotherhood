@@ -144,6 +144,7 @@ let activePillar = '';
 let history = JSON.parse(localStorage.getItem('mb_seo_history') || '[]');
 let lastIdea = null;   // full idea result (pillar, interpretation, keyword_options)
 let lastResult = null; // most recently rendered pack (for tracking the selected keyword)
+let lastMode = 'instant';
 
 const pillarsEl = document.getElementById('pillars');
 PILLARS.forEach(p => {
@@ -640,6 +641,44 @@ function setInputMode(m) {
   // In idea mode the AI picks the pillar, so hide the manual pillar picker.
   document.getElementById('pillar-label').style.display = m === 'topic' ? 'block' : 'none';
   document.getElementById('pillars').style.display = m === 'topic' ? 'grid' : 'none';
+  saveState();
+}
+
+/* ---------- Remember the last session across reloads ---------- */
+
+function saveState() {
+  try {
+    localStorage.setItem('mb_seo_state', JSON.stringify({
+      inputMode,
+      activePillar,
+      topic: document.getElementById('topic').value,
+      idea: document.getElementById('idea').value,
+      result: lastResult,
+      mode: lastMode,
+      lastIdea: lastIdea,
+    }));
+  } catch (_) {}
+}
+
+function restoreState() {
+  let s;
+  try { s = JSON.parse(localStorage.getItem('mb_seo_state') || 'null'); } catch (_) { s = null; }
+  if (!s) return;
+  if (s.topic) document.getElementById('topic').value = s.topic;
+  if (s.idea) document.getElementById('idea').value = s.idea;
+  if (s.activePillar) {
+    activePillar = s.activePillar;
+    document.querySelectorAll('.pillar-btn').forEach(x =>
+      x.classList.toggle('active', x.textContent === activePillar));
+  }
+  setInputMode(s.inputMode || 'topic');
+  if (s.lastIdea) lastIdea = s.lastIdea;
+  if (s.result) {
+    lastResult = s.result;
+    lastMode = s.mode || 'instant';
+    setStatus(`Primary keyword: "${s.result.primary_keyword}"`);
+    renderResults(s.result, lastMode);
+  }
 }
 
 /* ---------- Main ---------- */
@@ -692,8 +731,10 @@ async function generate() {
     }
     if (historyLabel) addToHistory(historyLabel);
     lastResult = data;
+    lastMode = mode;
     setStatus(`Primary keyword: "${data.primary_keyword}"`);
     renderResults(data, mode);
+    saveState();
   } catch (err) {
     setStatus(err.message || 'Something went wrong. Try again.', true);
     console.error(err);
@@ -717,8 +758,10 @@ async function selectKeyword(idx) {
     data.keyword_options = lastIdea.keyword_options;
     data.primary_keyword = chosen;
     lastResult = data;
+    lastMode = 'ai';
     setStatus(`Primary keyword: "${chosen}"`);
     renderResults(data, 'ai');
+    saveState();
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
     setStatus(err.message || 'Rebuild failed.', true);
@@ -731,6 +774,8 @@ document.getElementById('topic').addEventListener('keydown', e => {
 document.getElementById('idea').addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generate();
 });
+
+restoreState();
 </script>
 </body>
 </html>
