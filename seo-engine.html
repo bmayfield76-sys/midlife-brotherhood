@@ -17,6 +17,17 @@ input,textarea,button,select{font-family:'Barlow',sans-serif;}
 .sub{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:4px;color:var(--red);text-transform:uppercase;margin:4px 0 8px;}
 .intro{font-size:14px;color:var(--grey-light);line-height:1.55;margin-bottom:24px;max-width:620px;}
 .section-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--grey);margin:0 0 10px;}
+.mode-toggle{display:flex;gap:0;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:20px;width:fit-content;}
+.mode-toggle button{background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:11px 22px;cursor:pointer;transition:all .2s;}
+.mode-toggle button.active{background:var(--red);color:#fff;}
+.mode-toggle button:hover:not(.active){color:var(--white);}
+.idea-box{width:100%;min-height:140px;padding:14px 16px;border:0.5px solid var(--border);border-radius:3px;background:var(--card);color:var(--white);font-size:15px;line-height:1.55;outline:none;resize:vertical;margin-bottom:10px;transition:border-color .2s;}
+.idea-box:focus{border-color:var(--red);}
+.idea-gen-row{display:flex;justify-content:flex-end;margin-bottom:10px;}
+.card.translate{border-left-color:var(--red);background:#1d1414;}
+.translate-pillar{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;background:var(--red);color:#fff;border-radius:2px;padding:3px 10px;margin-right:8px;}
+.translate-kw{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--white);margin:10px 0 8px;}
+.translate-angle{font-size:14px;color:var(--grey-light);line-height:1.55;}
 .pillar-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-bottom:20px;}
 .pillar-btn{padding:10px 4px;border:0.5px solid var(--border);border-radius:3px;background:var(--card);font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-light);cursor:pointer;transition:all .15s;}
 .pillar-btn:hover{border-color:var(--grey);color:var(--white);}
@@ -74,15 +85,28 @@ pre.schema{background:var(--black);border:0.5px solid var(--border);border-radiu
 <div class="wrap">
   <div class="logo">MIDLIFE <span>BROTHERHOOD</span></div>
   <div class="sub">Content Engine</div>
-  <p class="intro">Enter a topic, pick a pillar, hit Generate. You get SEO keywords, blog titles, YouTube titles, a meta description for Rank Math, social hooks, and an AI-search (AEO) pack — question keywords, a citable answer paragraph, and FAQ schema so ChatGPT, Claude, and Perplexity can find and quote you. Works instantly out of the box; flip on AI mode with a Claude API key for smarter, topic-specific results.</p>
+  <p class="intro">Two ways in: give it a quick topic, or just talk about what you want to write and let it figure out the pillar and the keyword men actually search for. Either way you get SEO keywords, blog titles, YouTube titles, a meta description for Rank Math, social hooks, and an AI-search (AEO) pack — question keywords, citable answers, and FAQ schema so ChatGPT, Claude, and Perplexity can find and quote you.</p>
 
-  <div class="section-label">Pillar (optional)</div>
+  <div class="mode-toggle">
+    <button id="mode-topic" class="active" onclick="setInputMode('topic')">Quick Topic</button>
+    <button id="mode-idea" onclick="setInputMode('idea')">Describe Your Idea</button>
+  </div>
+
+  <div class="section-label" id="pillar-label">Pillar (optional)</div>
   <div class="pillar-grid" id="pillars"></div>
 
-  <div class="section-label">Topic</div>
-  <div class="input-row">
-    <input type="text" id="topic" placeholder="e.g. testosterone, weight loss, discipline, divorce recovery..."/>
-    <button class="gen-btn" id="gen" onclick="generate()">Generate</button>
+  <div id="topic-wrap">
+    <div class="section-label">Topic</div>
+    <div class="input-row">
+      <input type="text" id="topic" placeholder="e.g. testosterone, weight loss, discipline, divorce recovery..."/>
+      <button class="gen-btn" id="gen" onclick="generate()">Generate</button>
+    </div>
+  </div>
+
+  <div id="idea-wrap" style="display:none;">
+    <div class="section-label">Your idea</div>
+    <textarea class="idea-box" id="idea" placeholder="Talk about what you want to write. Paste a title, a rough draft, or just riff — e.g. 'I wrote a post called Who Would You Be If No One Told You Who You Were. It's about how men lose themselves in the roles they play...' The engine figures out the pillar and the keyword men actually search for, then builds everything else."></textarea>
+    <div class="idea-gen-row"><button class="gen-btn" id="gen-idea" onclick="generate()">Generate</button></div>
   </div>
 
   <div class="mode-row">
@@ -330,6 +354,95 @@ All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
   return JSON.parse(text);
 }
 
+/* ---------- Idea mode (AI translates freeform idea → pillar + keyword + full pack) ---------- */
+
+const IDEA_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['pillar','interpretation','primary_keyword','keywords','blog_titles','youtube_titles','meta_description','social_hooks','ai_questions','faq'],
+  properties: {
+    pillar: { type: 'string', enum: ['Body','Mind','Purpose','Finances','Relationships','Brotherhood'] },
+    interpretation: { type: 'string' },
+    primary_keyword: { type: 'string' },
+    keywords: { type: 'array', items: { type: 'string' } },
+    blog_titles: { type: 'array', items: { type: 'string' } },
+    youtube_titles: { type: 'array', items: { type: 'string' } },
+    meta_description: { type: 'string' },
+    social_hooks: { type: 'array', items: { type: 'string' } },
+    ai_questions: { type: 'array', items: { type: 'string' } },
+    faq: {
+      type: 'array',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['question','answer'],
+        properties: { question: { type: 'string' }, answer: { type: 'string' } },
+      },
+    },
+  },
+};
+
+async function aiIdeaGenerate(idea, apiKey) {
+  const prompt = `You are a content strategist and SEO/AEO expert for "The Midlife Brotherhood" — a men's development brand targeting men aged 35–60 going through major life transitions. The brand voice is direct, no-BS, Gen X, slightly urban, coach-to-man. The founder is Billy Mayfield, a nutritional coach and author who lost 100 lbs and raised his testosterone 71% naturally.
+
+The six brand pillars are:
+- Body: physical health, weight, testosterone, energy, training, nutrition
+- Mind: mental health, stress, discipline, focus, mindset, confidence
+- Purpose: identity, meaning, direction, career, legacy, "who am I now"
+- Finances: money, debt, income, provision, financial control
+- Relationships: marriage, dating, fatherhood, family, romantic connection
+- Brotherhood: male friendship, community, isolation, accountability, belonging
+
+Here is the writer's raw idea — a title, a rough draft, or just them thinking out loud:
+"""
+${idea}
+"""
+
+The writer's problem: their ideas have great emotional titles but terrible SEO. For example, a post titled "Who would you be if no one told you who you were" should target the keyword "how to find yourself again as a man" — that is what men actually type into Google. Your job is to bridge that gap.
+
+Do this:
+1. pillar: pick the ONE best-fitting pillar from the six above.
+2. interpretation: 1–2 sentences, written directly to the writer ("Your idea is really about..."), naming the emotional theme AND the searchable angle, so they understand why you chose this pillar and keyword.
+3. primary_keyword: the single best focus keyword for Rank Math — 3-5 words, high search intent, low competition, phrased the way a man 35–60 would actually search it (not the poetic title). Follow the "how to find yourself again as a man" style: plain-language, problem-first.
+4. keywords: 6 specific long-tail phrases men 35–60 actually search around this idea (use age qualifiers like "after 40", "over 50", "midlife", "as a man" where natural).
+5. blog_titles: 3 SEO-optimized titles that start with the primary keyword or a power word — but keep the emotional punch of the original idea where you can.
+6. youtube_titles: 3 titles that create curiosity or promise a specific result, under 60 characters when possible.
+7. meta_description: 150–160 characters for the primary keyword with a subtle call to action.
+8. social_hooks: 3 short punchy Instagram hooks (1–2 sentences, no hashtags) that sound like a real man talking, not a motivational poster.
+9. ai_questions: 3 natural-language questions men 35–60 would type into ChatGPT, Claude, or Perplexity about this idea.
+10. faq: for each ai_question, a 2–3 sentence direct, quotable answer an AI assistant could cite verbatim — lead with the answer, be specific, include the age context.
+
+All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 3000,
+      output_config: { format: { type: 'json_schema', schema: IDEA_SCHEMA } },
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!resp.ok) {
+    let msg = `API error (${resp.status})`;
+    try { const b = await resp.json(); if (b?.error?.message) msg = b.error.message; } catch (_) {}
+    if (resp.status === 401) msg = 'Invalid API key. Check it in API key settings.';
+    if (resp.status === 429) msg = 'Rate limited by the API. Wait a minute and try again.';
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  if (data.stop_reason === 'refusal') throw new Error('Claude declined this idea. Try rephrasing it.');
+  const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  return JSON.parse(text);
+}
+
 /* ---------- Render ---------- */
 
 function esc(s) {
@@ -380,6 +493,17 @@ function renderResults(d, mode) {
     }
     results.appendChild(c);
     return c;
+  }
+
+  if (d.pillar && d.interpretation) {
+    const tc = document.createElement('div');
+    tc.className = 'card translate';
+    tc.innerHTML =
+      `<div class="card-label">What I did with your idea <span class="badge ai">AI</span></div>` +
+      `<div><span class="translate-pillar">${esc(d.pillar)}</span></div>` +
+      `<div class="translate-kw">${esc(d.primary_keyword)}</div>` +
+      `<div class="translate-angle">${esc(d.interpretation)}</div>`;
+    results.appendChild(tc);
   }
 
   const kw = card('keywords', 'Keywords to target', 'Primary keyword first — use it in your title, first paragraph, and Rank Math focus keyword.');
@@ -444,50 +568,84 @@ function renderResults(d, mode) {
   aeo.appendChild(schemaBtn);
 }
 
+/* ---------- Input mode toggle ---------- */
+
+let inputMode = 'topic';
+
+function setInputMode(m) {
+  inputMode = m;
+  document.getElementById('mode-topic').classList.toggle('active', m === 'topic');
+  document.getElementById('mode-idea').classList.toggle('active', m === 'idea');
+  document.getElementById('topic-wrap').style.display = m === 'topic' ? 'block' : 'none';
+  document.getElementById('idea-wrap').style.display = m === 'idea' ? 'block' : 'none';
+  // In idea mode the AI picks the pillar, so hide the manual pillar picker.
+  document.getElementById('pillar-label').style.display = m === 'topic' ? 'block' : 'none';
+  document.getElementById('pillars').style.display = m === 'topic' ? 'grid' : 'none';
+}
+
 /* ---------- Main ---------- */
 
 async function generate() {
-  const topic = document.getElementById('topic').value.trim();
-  if (!topic) { setStatus('Enter a topic first.', true); return; }
-
-  const btn = document.getElementById('gen');
-  const useAI = document.getElementById('ai-mode').checked;
   const apiKey = localStorage.getItem('mb_seo_api_key') || '';
+  const useAI = document.getElementById('ai-mode').checked;
 
-  if (useAI && !apiKey) {
-    setStatus('AI mode needs an API key — add one in API key settings, or uncheck AI mode.', true);
-    document.getElementById('key-panel').classList.add('open');
-    return;
-  }
+  const topicBtn = document.getElementById('gen');
+  const ideaBtn = document.getElementById('gen-idea');
 
-  btn.disabled = true;
-  btn.textContent = 'Working...';
+  let data, mode, historyLabel;
+
   document.getElementById('results').innerHTML = '';
 
   try {
-    let data, mode;
-    if (useAI) {
-      setStatus('Asking Claude to work your topic...');
-      data = await aiGenerate(topic, activePillar, apiKey);
+    if (inputMode === 'idea') {
+      const idea = document.getElementById('idea').value.trim();
+      if (!idea) { setStatus('Describe your idea first.', true); return; }
+      if (!apiKey) {
+        setStatus('Idea mode needs a Claude API key — add one in API key settings below.', true);
+        document.getElementById('key-panel').classList.add('open');
+        return;
+      }
+      ideaBtn.disabled = true; ideaBtn.textContent = 'Working...';
+      setStatus('Reading your idea and finding the pillar and keyword...');
+      data = await aiIdeaGenerate(idea, apiKey);
       mode = 'ai';
+      historyLabel = data.primary_keyword;
     } else {
-      data = instantGenerate(topic, activePillar);
-      mode = 'instant';
+      const topic = document.getElementById('topic').value.trim();
+      if (!topic) { setStatus('Enter a topic first.', true); return; }
+      if (useAI && !apiKey) {
+        setStatus('AI mode needs an API key — add one in API key settings, or uncheck AI mode.', true);
+        document.getElementById('key-panel').classList.add('open');
+        return;
+      }
+      topicBtn.disabled = true; topicBtn.textContent = 'Working...';
+      if (useAI) {
+        setStatus('Asking Claude to work your topic...');
+        data = await aiGenerate(topic, activePillar, apiKey);
+        mode = 'ai';
+      } else {
+        data = instantGenerate(topic, activePillar);
+        mode = 'instant';
+      }
+      historyLabel = topic;
     }
-    addToHistory(topic);
+    addToHistory(historyLabel);
     setStatus(`Primary keyword: "${data.primary_keyword}"`);
     renderResults(data, mode);
   } catch (err) {
     setStatus(err.message || 'Something went wrong. Try again.', true);
     console.error(err);
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Generate';
+    topicBtn.disabled = false; topicBtn.textContent = 'Generate';
+    ideaBtn.disabled = false; ideaBtn.textContent = 'Generate';
   }
 }
 
 document.getElementById('topic').addEventListener('keydown', e => {
   if (e.key === 'Enter') generate();
+});
+document.getElementById('idea').addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') generate();
 });
 </script>
 </body>

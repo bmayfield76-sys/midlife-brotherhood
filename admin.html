@@ -154,6 +154,16 @@ const styles = `
 .ce-badge{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:2px;margin-left:8px;vertical-align:middle;}
 .ce-badge.instant{background:var(--card2);color:var(--grey-light);border:0.5px solid var(--border);}
 .ce-badge.ai{background:var(--red);color:#fff;}
+.ce-mode-toggle{display:flex;gap:0;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;width:fit-content;margin-bottom:16px;}
+.ce-mode-toggle button{background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:2px;text-transform:uppercase;padding:10px 20px;cursor:pointer;transition:all .2s;}
+.ce-mode-toggle button.active{background:var(--red);color:#fff;}
+.ce-mode-toggle button:hover:not(.active){color:var(--white);}
+.ce-idea-box{width:100%;min-height:130px;padding:13px 15px;border:0.5px solid var(--border);border-radius:3px;background:#0f0f0f;color:var(--white);font-size:15px;line-height:1.55;outline:none;resize:vertical;transition:border-color .2s;}
+.ce-idea-box:focus{border-color:var(--red);}
+.ce-card.translate{border-left-color:var(--red);background:#1d1414;}
+.ce-translate-pillar{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;background:var(--red);color:#fff;border-radius:2px;padding:3px 10px;}
+.ce-translate-kw{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:var(--white);margin:10px 0 8px;}
+.ce-translate-angle{font-size:14px;color:var(--grey-light);line-height:1.55;}
 `;
 
 function timeAgo(ts) {
@@ -803,6 +813,84 @@ All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
   return JSON.parse(text);
 }
 
+const CE_IDEA_SCHEMA = {
+  type: 'object', additionalProperties: false,
+  required: ['pillar','interpretation','primary_keyword','keywords','blog_titles','youtube_titles','meta_description','social_hooks','faq'],
+  properties: {
+    pillar: { type: 'string', enum: ['Body','Mind','Purpose','Finances','Relationships','Brotherhood'] },
+    interpretation: { type: 'string' },
+    primary_keyword: { type: 'string' },
+    keywords: { type: 'array', items: { type: 'string' } },
+    blog_titles: { type: 'array', items: { type: 'string' } },
+    youtube_titles: { type: 'array', items: { type: 'string' } },
+    meta_description: { type: 'string' },
+    social_hooks: { type: 'array', items: { type: 'string' } },
+    faq: { type: 'array', items: { type: 'object', additionalProperties: false,
+      required: ['question','answer'],
+      properties: { question: { type: 'string' }, answer: { type: 'string' } } } },
+  },
+};
+
+async function ceAiIdeaGenerate(idea, apiKey) {
+  const prompt = `You are a content strategist and SEO/AEO expert for "The Midlife Brotherhood" — a men's development brand targeting men aged 35–60 going through major life transitions. The brand voice is direct, no-BS, Gen X, slightly urban, coach-to-man. The founder is Billy Mayfield, a nutritional coach and author who lost 100 lbs and raised his testosterone 71% naturally.
+
+The six brand pillars are:
+- Body: physical health, weight, testosterone, energy, training, nutrition
+- Mind: mental health, stress, discipline, focus, mindset, confidence
+- Purpose: identity, meaning, direction, career, legacy, "who am I now"
+- Finances: money, debt, income, provision, financial control
+- Relationships: marriage, dating, fatherhood, family, romantic connection
+- Brotherhood: male friendship, community, isolation, accountability, belonging
+
+Here is the writer's raw idea — a title, a rough draft, or just them thinking out loud:
+"""
+${idea}
+"""
+
+The writer's problem: their ideas have great emotional titles but terrible SEO. For example, a post titled "Who would you be if no one told you who you were" should target the keyword "how to find yourself again as a man" — that is what men actually type into Google. Your job is to bridge that gap.
+
+Do this:
+1. pillar: pick the ONE best-fitting pillar from the six above.
+2. interpretation: 1–2 sentences, written directly to the writer ("Your idea is really about..."), naming the emotional theme AND the searchable angle, so they understand why you chose this pillar and keyword.
+3. primary_keyword: the single best focus keyword for Rank Math — 3-5 words, high search intent, low competition, phrased the way a man 35–60 would actually search it (not the poetic title). Follow the "how to find yourself again as a man" style: plain-language, problem-first.
+4. keywords: 6 specific long-tail phrases men 35–60 actually search around this idea (use age qualifiers like "after 40", "over 50", "midlife", "as a man" where natural).
+5. blog_titles: 3 SEO-optimized titles that start with the primary keyword or a power word — but keep the emotional punch of the original idea where you can.
+6. youtube_titles: 3 titles that create curiosity or promise a specific result, under 60 characters when possible.
+7. meta_description: 150–160 characters for the primary keyword with a subtle call to action.
+8. social_hooks: 3 short punchy Instagram hooks (1–2 sentences, no hashtags) that sound like a real man talking, not a motivational poster.
+9. faq: 3 question/answer pairs — the questions are what men 35–60 would type into ChatGPT, Claude, or Perplexity about this idea; each answer is 2–3 sentences, direct and quotable so an AI assistant could cite it verbatim — lead with the answer, be specific, include the age context.
+
+All content must fit the Brotherhood brand voice — direct, honest, no fluff.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 3000,
+      output_config: { format: { type: 'json_schema', schema: CE_IDEA_SCHEMA } },
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!resp.ok) {
+    let msg = `API error (${resp.status})`;
+    try { const b = await resp.json(); if (b?.error?.message) msg = b.error.message; } catch (_) {}
+    if (resp.status === 401) msg = 'Invalid API key. Check it in API key settings.';
+    if (resp.status === 429) msg = 'Rate limited by the API. Wait a minute and try again.';
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  if (data.stop_reason === 'refusal') throw new Error('Claude declined this idea. Try rephrasing it.');
+  const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+  return JSON.parse(text);
+}
+
 function ceBuildFaqSchema(faq) {
   const json = JSON.stringify({
     '@context': 'https://schema.org',
@@ -841,8 +929,10 @@ function CeCard({ cls, label, hint, mode, children }) {
 }
 
 function ContentTab() {
+  const [inputMode, setInputMode] = useState('topic'); // 'topic' | 'idea'
   const [pillar, setPillar] = useState('');
   const [topic, setTopic] = useState('');
+  const [idea, setIdea] = useState('');
   const [useAI, setUseAI] = useState(!!localStorage.getItem('mb_seo_api_key'));
   const [keyOpen, setKeyOpen] = useState(false);
   const [keyDraft, setKeyDraft] = useState('');
@@ -865,19 +955,34 @@ function ContentTab() {
   }
 
   async function generate(overrideTopic) {
-    const t = (overrideTopic ?? topic).trim();
-    if (!t) { note('Enter a topic first.', true); return; }
     const apiKey = localStorage.getItem('mb_seo_api_key') || '';
-    if (useAI && !apiKey) {
-      note('AI mode needs an API key — add one in API key settings, or uncheck AI mode.', true);
-      setKeyOpen(true); return;
-    }
-    setBusy(true); setResult(null);
+    setResult(null);
     try {
-      let data, m;
-      if (useAI) { note('Asking Claude to work your topic...'); data = await ceAiGenerate(t, pillar, apiKey); m = 'ai'; }
-      else { data = ceInstantGenerate(t, pillar); m = 'instant'; }
-      const h = [t, ...history.filter(x=>x!==t)].slice(0,8);
+      let data, m, label;
+      if (inputMode === 'idea') {
+        const text = idea.trim();
+        if (!text) { note('Describe your idea first.', true); return; }
+        if (!apiKey) {
+          note('Idea mode needs a Claude API key — add one in API key settings below.', true);
+          setKeyOpen(true); return;
+        }
+        setBusy(true);
+        note('Reading your idea and finding the pillar and keyword...');
+        data = await ceAiIdeaGenerate(text, apiKey);
+        m = 'ai'; label = data.primary_keyword;
+      } else {
+        const t = (overrideTopic ?? topic).trim();
+        if (!t) { note('Enter a topic first.', true); return; }
+        if (useAI && !apiKey) {
+          note('AI mode needs an API key — add one in API key settings, or uncheck AI mode.', true);
+          setKeyOpen(true); return;
+        }
+        setBusy(true);
+        if (useAI) { note('Asking Claude to work your topic...'); data = await ceAiGenerate(t, pillar, apiKey); m = 'ai'; }
+        else { data = ceInstantGenerate(t, pillar); m = 'instant'; }
+        label = t;
+      }
+      const h = [label, ...history.filter(x=>x!==label)].slice(0,8);
       setHistory(h); localStorage.setItem('mb_seo_history', JSON.stringify(h));
       note(`Primary keyword: "${data.primary_keyword}"`);
       setResult(data); setMode(m);
@@ -894,26 +999,51 @@ function ContentTab() {
       <div className="section-title">Content Engine</div>
       <div className="section-sub">SEO keywords, titles & AI-search pack</div>
       <div className="panel">
-        <div className="panel-title">Pillar (optional)</div>
-        <div className="ce-pillar-grid">
-          {CE_PILLARS.map(p=>(
-            <button key={p} className={`ce-pillar-btn${pillar===p?' active':''}`}
-              onClick={()=>setPillar(pillar===p?'':p)}>{p}</button>
-          ))}
+        <div className="ce-mode-toggle">
+          <button className={inputMode==='topic'?'active':''} onClick={()=>setInputMode('topic')}>Quick Topic</button>
+          <button className={inputMode==='idea'?'active':''} onClick={()=>setInputMode('idea')}>Describe Your Idea</button>
         </div>
-        <div className="ce-input-row">
-          <input placeholder="e.g. testosterone, weight loss, discipline, divorce recovery..."
-            value={topic} onChange={e=>setTopic(e.target.value)}
-            onKeyDown={e=>e.key==='Enter'&&generate()}/>
-          <button className="btn-red" onClick={()=>generate()} disabled={busy}>{busy?'Working...':'Generate'}</button>
-        </div>
-        <div className="ce-mode-row">
-          <label><input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)}/> AI mode (Claude — smarter, topic-specific results)</label>
+
+        {inputMode==='topic' && (
+          <div>
+            <div className="panel-title">Pillar (optional)</div>
+            <div className="ce-pillar-grid">
+              {CE_PILLARS.map(p=>(
+                <button key={p} className={`ce-pillar-btn${pillar===p?' active':''}`}
+                  onClick={()=>setPillar(pillar===p?'':p)}>{p}</button>
+              ))}
+            </div>
+            <div className="ce-input-row">
+              <input placeholder="e.g. testosterone, weight loss, discipline, divorce recovery..."
+                value={topic} onChange={e=>setTopic(e.target.value)}
+                onKeyDown={e=>e.key==='Enter'&&generate()}/>
+              <button className="btn-red" onClick={()=>generate()} disabled={busy}>{busy?'Working...':'Generate'}</button>
+            </div>
+          </div>
+        )}
+
+        {inputMode==='idea' && (
+          <div>
+            <div className="panel-title">Your idea</div>
+            <textarea className="ce-idea-box"
+              placeholder="Talk about what you want to write. Paste a title, a rough draft, or just riff — e.g. 'I wrote a post called Who Would You Be If No One Told You Who You Were. It's about how men lose themselves in the roles they play...' The engine figures out the pillar and the keyword men actually search for, then builds everything else."
+              value={idea} onChange={e=>setIdea(e.target.value)}
+              onKeyDown={e=>(e.metaKey||e.ctrlKey)&&e.key==='Enter'&&generate()}/>
+            <div style={{display:'flex',justifyContent:'flex-end',marginTop:8}}>
+              <button className="btn-red" onClick={()=>generate()} disabled={busy}>{busy?'Working...':'Generate'}</button>
+            </div>
+          </div>
+        )}
+
+        <div className="ce-mode-row" style={{marginTop:12}}>
+          {inputMode==='topic'
+            ? <label><input type="checkbox" checked={useAI} onChange={e=>setUseAI(e.target.checked)}/> AI mode (Claude — smarter, topic-specific results)</label>
+            : <span style={{fontSize:12,color:'var(--grey)'}}>Idea mode always uses Claude (needs your API key).</span>}
           <button className="ce-key-link" onClick={()=>{ setKeyOpen(!keyOpen); setKeyDraft(localStorage.getItem('mb_seo_api_key')||''); }}>API key settings</button>
         </div>
         {keyOpen && (
           <div className="ce-key-panel">
-            <p>AI mode calls Claude directly from your browser. Get an API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> (requires a small credit balance). The key is saved only in this browser and sent only to api.anthropic.com.</p>
+            <p>Claude runs directly from your browser. Get an API key at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> (requires a small credit balance). The key is saved only in this browser and sent only to api.anthropic.com.</p>
             <div className="ce-key-input-row">
               <input type="password" placeholder="sk-ant-..." value={keyDraft} onChange={e=>setKeyDraft(e.target.value)}/>
               <button className="btn-grey" onClick={saveKey}>Save</button>
@@ -922,7 +1052,7 @@ function ContentTab() {
           </div>
         )}
         <div className={`ce-status${isErr?' err':''}`}>{status}</div>
-        {history.length>0 && !result && (
+        {history.length>0 && !result && inputMode==='topic' && (
           <div className="ce-chips">
             {history.map(t=>(
               <button key={t} className="ce-chip" onClick={()=>{ setTopic(t); generate(t); }}>{t}</button>
@@ -933,6 +1063,14 @@ function ContentTab() {
 
       {result && (
         <div>
+          {result.pillar && result.interpretation && (
+            <div className="ce-card translate">
+              <div className="ce-card-label">What I did with your idea <span className="ce-badge ai">AI</span></div>
+              <div><span className="ce-translate-pillar">{result.pillar}</span></div>
+              <div className="ce-translate-kw">{result.primary_keyword}</div>
+              <div className="ce-translate-angle">{result.interpretation}</div>
+            </div>
+          )}
           <CeCard cls="keywords" label="Keywords to target" mode={mode}
             hint="Primary keyword first — use it in your title, first paragraph, and Rank Math focus keyword.">
             {[result.primary_keyword, ...result.keywords.filter(k=>k!==result.primary_keyword)].map((k,i)=><CeItem key={i} text={k}/>)}
