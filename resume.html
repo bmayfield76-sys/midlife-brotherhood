@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ATS Resume Builder</title>
+<style>
+/* ============================================================
+   ATS Resume Builder — single-file, no dependencies.
+   Editor chrome uses a dark theme; the resume PREVIEW is a
+   clean, light, single-column, ATS-safe document.
+   PDF = browser "Save as PDF" via print (real selectable text).
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --black:#0a0a0a;--dark:#111;--card:#181818;--card2:#1f1f1f;
+  --red:#cc2200;--red-light:#e63300;--grey:#888;--grey-light:#aaa;
+  --white:#f0f0f0;--border:#2a2a2a;--green:#1a7a3a;--green-light:#22a84e;
+  --amber:#b8860b;--amber-light:#e0a000;
+}
+html,body{background:var(--black);color:var(--white);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100vh;}
+button,input,textarea,select{font-family:inherit;}
+
+/* ---------- Layout ---------- */
+.topbar{background:var(--dark);border-bottom:1px solid var(--border);
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:sticky;top:0;z-index:50;}
+.brand{font-size:20px;font-weight:800;letter-spacing:1px;}
+.brand span{color:var(--red);}
+.topbar-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.wrap{display:flex;gap:0;max-width:1500px;margin:0 auto;}
+.editor{flex:1 1 46%;min-width:0;padding:20px;max-height:calc(100vh - 56px);overflow-y:auto;}
+.preview-pane{flex:1 1 54%;min-width:0;background:#3a3a3a;
+  padding:24px;max-height:calc(100vh - 56px);overflow-y:auto;
+  display:flex;justify-content:center;}
+@media(max-width:900px){
+  .wrap{flex-direction:column;}
+  .editor,.preview-pane{max-height:none;flex:1 1 auto;}
+}
+
+/* ---------- Editor form ---------- */
+.section{background:var(--card);border:1px solid var(--border);border-radius:6px;
+  margin-bottom:16px;overflow:hidden;}
+.section-head{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 16px;background:var(--card2);cursor:pointer;user-select:none;}
+.section-head h2{font-size:13px;letter-spacing:2px;text-transform:uppercase;color:var(--grey-light);}
+.section-head .chev{color:var(--grey);font-size:12px;transition:transform .2s;}
+.section.collapsed .chev{transform:rotate(-90deg);}
+.section.collapsed .section-body{display:none;}
+.section-body{padding:16px;}
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--grey-light);margin-bottom:6px;}
+input[type=text],input[type=email],textarea,select{
+  width:100%;background:#0f0f0f;border:1px solid var(--border);border-radius:4px;
+  color:var(--white);font-size:14px;padding:10px 12px;outline:none;transition:border-color .15s;}
+input:focus,textarea:focus,select:focus{border-color:var(--red);}
+textarea{resize:vertical;min-height:60px;line-height:1.5;}
+.row{display:flex;gap:12px;}
+.row>.field{flex:1;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ---------- Buttons ---------- */
+.btn{border:none;border-radius:4px;font-size:13px;font-weight:600;letter-spacing:.5px;
+  padding:9px 14px;cursor:pointer;transition:background .15s,opacity .15s;white-space:nowrap;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-red:hover{background:var(--red-light);}
+.btn-ghost{background:transparent;color:var(--grey-light);border:1px solid var(--border);}
+.btn-ghost:hover{border-color:var(--grey);color:var(--white);}
+.btn-sm{padding:6px 10px;font-size:12px;}
+.btn-danger{background:transparent;color:#c44;border:1px solid #543;}
+.btn-danger:hover{background:#3a1a1a;}
+.btn-add{width:100%;background:transparent;border:1px dashed var(--border);color:var(--grey-light);
+  padding:10px;border-radius:4px;cursor:pointer;font-size:13px;margin-top:4px;}
+.btn-add:hover{border-color:var(--red);color:var(--white);}
+
+/* ---------- Entry cards (experience/education) ---------- */
+.entry{background:var(--card2);border:1px solid var(--border);border-radius:5px;
+  padding:14px;margin-bottom:12px;}
+.entry-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.entry-head .title{font-size:12px;color:var(--grey);letter-spacing:1px;text-transform:uppercase;}
+.bullet-row{margin-bottom:10px;}
+.bullet-head{display:flex;gap:8px;align-items:flex-start;}
+.bullet-head textarea{flex:1;}
+.bullet-tools{display:flex;flex-direction:column;gap:4px;}
+.metric-flag{font-size:11px;padding:4px 8px;border-radius:3px;margin-top:5px;display:inline-flex;
+  align-items:center;gap:6px;}
+.metric-flag.warn{background:#3a2e10;color:var(--amber-light);border:1px solid #5a4a1a;}
+.metric-flag.ok{background:#12331e;color:var(--green-light);border:1px solid #1e4a2e;}
+
+/* ---------- XYZ builder ---------- */
+.xyz{background:#0f0f0f;border:1px solid var(--border);border-radius:5px;padding:12px;margin-top:8px;}
+.xyz h4{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--red-light);margin-bottom:4px;}
+.xyz .formula{font-size:12px;color:var(--grey);margin-bottom:10px;line-height:1.5;}
+.xyz .formula b{color:var(--grey-light);}
+.xyz-preview{background:#161616;border:1px dashed var(--border);border-radius:4px;
+  padding:10px;font-size:13px;color:var(--white);margin:10px 0;min-height:20px;line-height:1.5;font-style:italic;}
+.hint-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.chip{font-size:11px;background:#1a1a1a;border:1px solid var(--border);border-radius:12px;
+  padding:3px 9px;color:var(--grey-light);}
+
+/* ---------- Skills ---------- */
+.skills-input-row{display:flex;gap:8px;}
+.skills-input-row input{flex:1;}
+.skill-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.skill-tag{background:var(--card2);border:1px solid var(--border);border-radius:14px;
+  padding:5px 12px;font-size:13px;display:inline-flex;align-items:center;gap:8px;}
+.skill-tag .x{cursor:pointer;color:var(--grey);font-weight:700;}
+.skill-tag .x:hover{color:var(--red-light);}
+
+/* ---------- Keyword analyzer ---------- */
+.score-ring{display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.score-num{font-size:34px;font-weight:800;line-height:1;}
+.score-num.lo{color:#c44;}.score-num.mid{color:var(--amber-light);}.score-num.hi{color:var(--green-light);}
+.score-label{font-size:12px;color:var(--grey-light);line-height:1.5;}
+.kw-group{margin-top:12px;}
+.kw-group h4{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--grey-light);margin-bottom:8px;}
+.kw-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.kw{font-size:12px;border-radius:12px;padding:3px 10px;cursor:default;}
+.kw.miss{background:#331414;color:#e88;border:1px solid #542;}
+.kw.hit{background:#12331e;color:var(--green-light);border:1px solid #1e4a2e;}
+.kw.miss.clickable{cursor:pointer;}
+.kw.miss.clickable:hover{background:#4a1a1a;}
+.muted{color:var(--grey);font-size:13px;line-height:1.6;}
+
+/* ============================================================
+   RESUME PREVIEW — the actual document. ATS-safe:
+   single column, black on white, standard fonts, real text,
+   no tables/images/columns/text-boxes.
+   ============================================================ */
+.resume-page{background:#fff;color:#1a1a1a;width:8.5in;min-height:11in;
+  padding:0.5in 0.6in;font-family:Georgia,"Times New Roman",serif;font-size:10.5pt;
+  line-height:1.38;box-shadow:0 4px 24px rgba(0,0,0,.4);}
+.resume-page .r-name{font-size:22pt;font-weight:700;letter-spacing:.5px;margin-bottom:2px;color:#111;}
+.resume-page .r-title{font-size:12pt;color:#333;margin-bottom:6px;}
+.resume-page .r-contact{font-size:9.5pt;color:#333;margin-bottom:12px;}
+.resume-page .r-contact span{white-space:nowrap;}
+.resume-page .r-sec{margin-top:14px;}
+.resume-page .r-sec-title{font-size:11pt;font-weight:700;text-transform:uppercase;
+  letter-spacing:1.5px;color:#111;border-bottom:1.5px solid #333;padding-bottom:2px;margin-bottom:8px;}
+.resume-page .r-summary{font-size:10.5pt;color:#222;}
+.resume-page .r-entry{margin-bottom:11px;}
+.resume-page .r-entry-top{display:flex;justify-content:space-between;align-items:baseline;}
+.resume-page .r-role{font-weight:700;font-size:11pt;color:#111;}
+.resume-page .r-company{font-weight:400;}
+.resume-page .r-dates{font-size:9.5pt;color:#444;white-space:nowrap;padding-left:12px;}
+.resume-page .r-sub{font-size:9.5pt;color:#444;font-style:italic;margin-bottom:3px;}
+.resume-page ul{margin:4px 0 0 18px;padding:0;}
+.resume-page li{margin-bottom:3px;}
+.resume-page .r-skills{font-size:10.5pt;color:#222;}
+.resume-page .r-empty{color:#bbb;font-style:italic;}
+
+/* ---------- Print: only the resume, real text, letter size ---------- */
+@media print{
+  @page{size:letter;margin:0;}
+  html,body{background:#fff;}
+  .topbar,.editor,.preview-pane>*:not(.resume-page){display:none!important;}
+  .topbar{display:none!important;}
+  .wrap{display:block;}
+  .editor{display:none!important;}
+  .preview-pane{display:block!important;background:#fff;padding:0;max-height:none;overflow:visible;}
+  .resume-page{box-shadow:none;width:auto;min-height:auto;padding:0.5in 0.6in;}
+  .no-print{display:none!important;}
+}
+.print-tip{font-size:11px;color:var(--grey);margin-top:10px;line-height:1.5;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--card2);border:1px solid var(--border);color:var(--white);
+  padding:12px 20px;border-radius:6px;font-size:13px;z-index:200;opacity:0;
+  transition:opacity .2s;pointer-events:none;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="topbar no-print">
+  <div class="brand">ATS <span>Resume</span> Builder</div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" onclick="loadSample()">Load sample</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Export data</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importFile').click()">Import data</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importJSON(event)"/>
+    <button class="btn btn-ghost btn-sm" onclick="clearAll()">Clear</button>
+    <button class="btn btn-red" onclick="downloadPDF()">Download PDF</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- ================= EDITOR ================= -->
+  <div class="editor no-print" id="editor"></div>
+
+  <!-- ================= PREVIEW ================= -->
+  <div class="preview-pane">
+    <div class="resume-page" id="resume"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DATA MODEL + PERSISTENCE
+   ============================================================ */
+const STORAGE_KEY = 'ats_resume_data_v1';
+const blankData = () => ({
+  contact:{name:'',title:'',email:'',phone:'',location:'',linkedin:'',website:''},
+  summary:'',
+  experience:[],
+  education:[],
+  skills:[],
+  jobDescription:''
+});
+let data = load() || blankData();
+let ui = { collapsed:{}, xyzOpen:{} }; // section + per-bullet UI state
+
+function load(){
+  try{ const raw=localStorage.getItem(STORAGE_KEY); return raw?JSON.parse(raw):null; }
+  catch(e){ return null; }
+}
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){}
+}
+function uid(){ return Math.random().toString(36).slice(2,9); }
+
+/* ============================================================
+   METRIC / QUANTIFICATION DETECTION
+   ============================================================ */
+const NUMBER_WORDS = /\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|dozen|hundred|thousand|million|billion|first|second|third|daily|weekly|monthly|quarterly|annually)\b/i;
+function hasMetric(text){
+  if(!text) return false;
+  if(/[\d]/.test(text)) return true;                 // any digit
+  if(/[$%]/.test(text)) return true;                 // money / percent symbols
+  if(NUMBER_WORDS.test(text)) return true;           // spelled-out numbers
+  return false;
+}
+
+/* ============================================================
+   KEYWORD ANALYZER (job description vs resume text)
+   ============================================================ */
+const STOPWORDS = new Set(('a an the and or but if then else for to of in on at by with from as is are was were be been being this that these those you your we our they their it its will can may should must have has had do does did not your role team work working ability able strong excellent good great high highly experience experienced years year including include includes etc using use used across within into over under more most other others who what which their them our ours plus etc such via per about above below between both each few many some any all no nor so than too very will just don should now').split(/\s+/));
+function tokenize(text){
+  return (text||'').toLowerCase().replace(/[^a-z0-9+#. ]/g,' ').split(/\s+/)
+    .map(w=>w.replace(/^\.+|\.+$/g,'')).filter(w=>w.length>2 && !STOPWORDS.has(w) && !/^\d+$/.test(w));
+}
+function resumeText(){
+  const parts=[data.contact.title, data.summary, data.skills.join(' ')];
+  data.experience.forEach(e=>{ parts.push(e.role,e.company,(e.bullets||[]).map(b=>b.text).join(' ')); });
+  data.education.forEach(e=>{ parts.push(e.school,e.degree,e.details); });
+  return parts.join(' ').toLowerCase();
+}
+function analyzeKeywords(){
+  const jd=data.jobDescription||'';
+  if(jd.trim().length<20) return null;
+  // frequency of JD keywords
+  const freq={};
+  tokenize(jd).forEach(w=>{ freq[w]=(freq[w]||0)+1; });
+  // rank: take top distinct keywords
+  const ranked=Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).slice(0,25);
+  const rtext=' '+resumeText().replace(/[^a-z0-9+#. ]/g,' ')+' ';
+  const hit=[], miss=[];
+  ranked.forEach(k=>{
+    const re=new RegExp('(^| )'+k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'i');
+    (re.test(rtext)?hit:miss).push(k);
+  });
+  const pct=ranked.length?Math.round(hit.length/ranked.length*100):0;
+  return {pct,hit,miss,total:ranked.length};
+}
+
+/* ============================================================
+   RENDER — EDITOR
+   ============================================================ */
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function sectionWrap(key,title,inner){
+  const c = ui.collapsed[key] ? 'collapsed' : '';
+  return `<div class="section ${c}">
+    <div class="section-head" onclick="toggleSection('${key}')">
+      <h2>${title}</h2><span class="chev">▼</span>
+    </div>
+    <div class="section-body">${inner}</div>
+  </div>`;
+}
+
+function renderContact(){
+  const c=data.contact;
+  const inner=`
+    <div class="field"><label>Full name</label>
+      <input type="text" value="${esc(c.name)}" oninput="setContact('name',this.value)" placeholder="Jordan Rivera"/></div>
+    <div class="field"><label>Professional title</label>
+      <input type="text" value="${esc(c.title)}" oninput="setContact('title',this.value)" placeholder="Operations Manager"/></div>
+    <div class="grid2">
+      <div class="field"><label>Email</label>
+        <input type="email" value="${esc(c.email)}" oninput="setContact('email',this.value)" placeholder="jordan@email.com"/></div>
+      <div class="field"><label>Phone</label>
+        <input type="text" value="${esc(c.phone)}" oninput="setContact('phone',this.value)" placeholder="(555) 123-4567"/></div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Location</label>
+        <input type="text" value="${esc(c.location)}" oninput="setContact('location',this.value)" placeholder="Austin, TX"/></div>
+      <div class="field"><label>LinkedIn</label>
+        <input type="text" value="${esc(c.linkedin)}" oninput="setContact('linkedin',this.value)" placeholder="linkedin.com/in/jordanrivera"/></div>
+    </div>
+    <div class="field"><label>Website / Portfolio (optional)</label>
+      <input type="text" value="${esc(c.website)}" oninput="setContact('website',this.value)" placeholder="jordanrivera.com"/></div>`;
+  return sectionWrap('contact','Contact Info',inner);
+}
+
+function renderSummary(){
+  const inner=`
+    <div class="field">
+      <label>Professional summary <span style="color:var(--grey);text-transform:none;letter-spacing:0">— 2–3 lines, lead with your strongest, quantified value</span></label>
+      <textarea oninput="data.summary=this.value;afterEdit()" placeholder="Operations manager with 8+ years scaling support teams...">${esc(data.summary)}</textarea>
+    </div>`;
+  return sectionWrap('summary','Professional Summary',inner);
+}
+
+function renderExperience(){
+  let inner='';
+  data.experience.forEach((e,i)=>{
+    inner+=`<div class="entry">
+      <div class="entry-head">
+        <span class="title">Position ${i+1}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeExp(${i})">Remove</button>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Job title</label>
+          <input type="text" value="${esc(e.role)}" oninput="setExp(${i},'role',this.value)" placeholder="Operations Manager"/></div>
+        <div class="field"><label>Company</label>
+          <input type="text" value="${esc(e.company)}" oninput="setExp(${i},'company',this.value)" placeholder="Acme Corp"/></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Location</label>
+          <input type="text" value="${esc(e.location)}" oninput="setExp(${i},'location',this.value)" placeholder="Austin, TX"/></div>
+        <div class="field"><label>Dates</label>
+          <input type="text" value="${esc(e.dates)}" oninput="setExp(${i},'dates',this.value)" placeholder="Jan 2021 – Present"/></div>
+      </div>
+      <label>Accomplishments <span style="color:var(--grey);text-transform:none;letter-spacing:0">— start with a strong verb, add a number</span></label>
+      ${(e.bullets||[]).map((b,j)=>renderBullet(i,j,b)).join('')}
+      <button class="btn-add" onclick="addBullet(${i})">+ Add accomplishment</button>
+    </div>`;
+  });
+  inner+=`<button class="btn-add" onclick="addExp()">+ Add position</button>`;
+  return sectionWrap('experience','Work Experience',inner);
+}
+
+function renderBullet(i,j,b){
+  const key=i+'_'+j;
+  const metric=hasMetric(b.text);
+  const flag = b.text.trim()
+    ? (metric
+        ? `<span class="metric-flag ok">✓ Has a metric</span>`
+        : `<span class="metric-flag warn">⚠ No number — add volume, %, $, or a timeframe</span>`)
+    : '';
+  const xyz = ui.xyzOpen[key] ? renderXYZ(i,j,b) : '';
+  return `<div class="bullet-row">
+    <div class="bullet-head">
+      <textarea oninput="setBullet(${i},${j},this.value)" placeholder="Cut average ticket resolution time by 32% by redesigning the triage workflow...">${esc(b.text)}</textarea>
+      <div class="bullet-tools">
+        <button class="btn btn-ghost btn-sm" onclick="toggleXYZ('${key}')" title="Build with the XYZ formula">XYZ</button>
+        <button class="btn btn-danger btn-sm" onclick="removeBullet(${i},${j})" title="Remove">✕</button>
+      </div>
+    </div>
+    ${flag}
+    ${xyz}
+  </div>`;
+}
+
+function renderXYZ(i,j,b){
+  const x=b.x||'',y=b.y||'',z=b.z||'';
+  const preview=assembleXYZ(x,y,z);
+  return `<div class="xyz">
+    <h4>XYZ Formula Builder</h4>
+    <div class="formula">Accomplished <b>[X]</b> by doing <b>[Y]</b>, which resulted in <b>[Z]</b>.</div>
+    <div class="field"><label>Y — the specific action you took</label>
+      <input type="text" value="${esc(y)}" oninput="setXYZ(${i},${j},'y',this.value)" placeholder="Redesigned the customer triage workflow"/></div>
+    <div class="field"><label>X — the measurable result / impact</label>
+      <input type="text" value="${esc(x)}" oninput="setXYZ(${i},${j},'x',this.value)" placeholder="cut average resolution time by 32%"/>
+      <div class="hint-chips">
+        <span class="chip">Volume/scale: 500K budget, 200+ clients, 150/day</span>
+        <span class="chip">Performance: +15% sales, −20 min wait</span>
+        <span class="chip">Timeframe: 5 projects, 2 weeks early</span>
+      </div>
+    </div>
+    <div class="field"><label>Z — the skills / tools you used</label>
+      <input type="text" value="${esc(z)}" oninput="setXYZ(${i},${j},'z',this.value)" placeholder="Zendesk, SQL, and Lean process mapping"/></div>
+    <div class="xyz-preview" id="xyzprev_${i}_${j}">${esc(preview)||'Your assembled bullet will appear here…'}</div>
+    <button class="btn btn-red btn-sm" onclick="insertXYZ(${i},${j})">Insert into bullet</button>
+  </div>`;
+}
+
+/* Assemble a natural, strong bullet from X/Y/Z parts. */
+function assembleXYZ(x,y,z){
+  x=(x||'').trim(); y=(y||'').trim(); z=(z||'').trim();
+  if(!x&&!y&&!z) return '';
+  let s='';
+  if(y){ s=y.charAt(0).toUpperCase()+y.slice(1); }
+  if(x){ s += (s? ', ':'') + (s? x.charAt(0).toLowerCase()+x.slice(1) : x.charAt(0).toUpperCase()+x.slice(1)); }
+  if(z){ s += (s? ', leveraging ':'Leveraging ') + z; }
+  if(s && !/[.!]$/.test(s)) s+='.';
+  return s;
+}
+
+function renderEducation(){
+  let inner='';
+  data.education.forEach((e,i)=>{
+    inner+=`<div class="entry">
+      <div class="entry-head">
+        <span class="title">Education ${i+1}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeEdu(${i})">Remove</button>
+      </div>
+      <div class="field"><label>School</label>
+        <input type="text" value="${esc(e.school)}" oninput="setEdu(${i},'school',this.value)" placeholder="University of Texas"/></div>
+      <div class="grid2">
+        <div class="field"><label>Degree / credential</label>
+          <input type="text" value="${esc(e.degree)}" oninput="setEdu(${i},'degree',this.value)" placeholder="B.B.A., Management"/></div>
+        <div class="field"><label>Dates</label>
+          <input type="text" value="${esc(e.dates)}" oninput="setEdu(${i},'dates',this.value)" placeholder="2012 – 2016"/></div>
+      </div>
+      <div class="field"><label>Details (optional) — honors, GPA, relevant coursework</label>
+        <input type="text" value="${esc(e.details)}" oninput="setEdu(${i},'details',this.value)" placeholder="Graduated cum laude · GPA 3.8"/></div>
+    </div>`;
+  });
+  inner+=`<button class="btn-add" onclick="addEdu()">+ Add education</button>`;
+  return sectionWrap('education','Education',inner);
+}
+
+function renderSkills(){
+  const inner=`
+    <div class="skills-input-row">
+      <input type="text" id="skillInput" placeholder="Type a skill and press Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();addSkill();}"/>
+      <button class="btn btn-red" onclick="addSkill()">Add</button>
+    </div>
+    <div class="skill-tags">
+      ${data.skills.map((s,i)=>`<span class="skill-tag">${esc(s)}<span class="x" onclick="removeSkill(${i})">✕</span></span>`).join('')}
+      ${data.skills.length===0?'<span class="muted">Add hard skills, tools, and keywords from the job posting.</span>':''}
+    </div>`;
+  return sectionWrap('skills','Skills',inner);
+}
+
+function analyzerResultHTML(){
+  const r=analyzeKeywords();
+  if(!r){
+    return `<p class="muted">Paste a job posting above, and this will score how well the resume matches it — and list the important keywords you're missing so you can weave them in.</p>`;
+  }
+  const cls=r.pct<50?'lo':r.pct<75?'mid':'hi';
+  return `
+    <div class="score-ring">
+      <div class="score-num ${cls}">${r.pct}%</div>
+      <div class="score-label">keyword match<br/>${r.hit.length} of ${r.total} key terms found</div>
+    </div>
+    ${r.miss.length?`<div class="kw-group"><h4>Missing — add these where truthful</h4>
+      <div class="kw-tags">${r.miss.map(k=>`<span class="kw miss clickable" title="Add to skills" onclick="quickAddSkill('${esc(k)}')">${esc(k)} +</span>`).join('')}</div></div>`:''}
+    ${r.hit.length?`<div class="kw-group"><h4>Matched</h4>
+      <div class="kw-tags">${r.hit.map(k=>`<span class="kw hit">${esc(k)}</span>`).join('')}</div></div>`:''}`;
+}
+function renderAnalyzer(){
+  const inner=`
+    <div class="field">
+      <label>Paste the job description</label>
+      <textarea style="min-height:110px" oninput="data.jobDescription=this.value;afterEdit()" placeholder="Paste the full job posting here...">${esc(data.jobDescription)}</textarea>
+    </div>
+    <div id="analyzerResult">${analyzerResultHTML()}</div>`;
+  return sectionWrap('analyzer','Job Match Analyzer',inner);
+}
+
+function renderEditor(){
+  const el=document.getElementById('editor');
+  // preserve which input was focused (by data-focus id) across structural rebuilds
+  el.innerHTML =
+    renderContact()+
+    renderSummary()+
+    renderExperience()+
+    renderEducation()+
+    renderSkills()+
+    renderAnalyzer()+
+    `<p class="print-tip no-print">Tip: "Download PDF" opens your browser's print dialog — choose <b>Save as PDF</b> as the destination. This keeps your text selectable so applicant tracking systems can read every word.</p>`;
+}
+
+/* ============================================================
+   RENDER — RESUME PREVIEW (the document)
+   ============================================================ */
+function renderResume(){
+  const c=data.contact;
+  const contactBits=[c.email,c.phone,c.location,c.linkedin,c.website].filter(Boolean)
+    .map(b=>`<span>${esc(b)}</span>`).join(' &nbsp;•&nbsp; ');
+  let html='';
+  html+=`<div class="r-name">${esc(c.name)||'<span class="r-empty">Your Name</span>'}</div>`;
+  if(c.title) html+=`<div class="r-title">${esc(c.title)}</div>`;
+  html+=`<div class="r-contact">${contactBits||'<span class="r-empty">email • phone • location • linkedin</span>'}</div>`;
+
+  if(data.summary.trim()){
+    html+=`<div class="r-sec"><div class="r-sec-title">Summary</div>
+      <div class="r-summary">${esc(data.summary)}</div></div>`;
+  }
+  if(data.experience.length){
+    html+=`<div class="r-sec"><div class="r-sec-title">Experience</div>`;
+    data.experience.forEach(e=>{
+      const bullets=(e.bullets||[]).filter(b=>b.text.trim());
+      html+=`<div class="r-entry">
+        <div class="r-entry-top">
+          <div><span class="r-role">${esc(e.role)||'Role'}</span>${e.company?` — <span class="r-company">${esc(e.company)}</span>`:''}</div>
+          <div class="r-dates">${esc(e.dates)}</div>
+        </div>
+        ${e.location?`<div class="r-sub">${esc(e.location)}</div>`:''}
+        ${bullets.length?`<ul>${bullets.map(b=>`<li>${esc(b.text)}</li>`).join('')}</ul>`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  if(data.education.length){
+    html+=`<div class="r-sec"><div class="r-sec-title">Education</div>`;
+    data.education.forEach(e=>{
+      html+=`<div class="r-entry">
+        <div class="r-entry-top">
+          <div><span class="r-role">${esc(e.degree)||'Degree'}</span>${e.school?` — <span class="r-company">${esc(e.school)}</span>`:''}</div>
+          <div class="r-dates">${esc(e.dates)}</div>
+        </div>
+        ${e.details?`<div class="r-sub">${esc(e.details)}</div>`:''}
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  if(data.skills.length){
+    html+=`<div class="r-sec"><div class="r-sec-title">Skills</div>
+      <div class="r-skills">${data.skills.map(esc).join(' &nbsp;•&nbsp; ')}</div></div>`;
+  }
+  document.getElementById('resume').innerHTML=html;
+}
+
+/* ============================================================
+   EDIT HANDLERS
+   ============================================================ */
+// afterEdit: light update (no editor rebuild → keeps input focus)
+function afterEdit(){ save(); renderResume(); refreshLive(); }
+// structural: rebuild editor too
+function structural(){ save(); renderEditor(); renderResume(); }
+
+// Update live bits that don't hold input focus (the job-match score),
+// so we never rebuild the editor mid-keystroke and steal focus.
+function refreshLive(){
+  const el=document.getElementById('analyzerResult');
+  if(el) el.innerHTML=analyzerResultHTML();
+}
+
+function setContact(k,v){ data.contact[k]=v; afterEdit(); }
+
+function addExp(){ data.experience.push({role:'',company:'',location:'',dates:'',bullets:[{text:'',x:'',y:'',z:''}]}); structural(); }
+function removeExp(i){ data.experience.splice(i,1); structural(); }
+function setExp(i,k,v){ data.experience[i][k]=v; afterEdit(); }
+
+function addBullet(i){ data.experience[i].bullets.push({text:'',x:'',y:'',z:''}); structural(); }
+function removeBullet(i,j){ data.experience[i].bullets.splice(j,1); structural(); }
+function setBullet(i,j,v){
+  data.experience[i].bullets[j].text=v; save(); renderResume();
+  // update this bullet's metric flag live without full rebuild
+  updateMetricFlag(i,j);
+}
+function updateMetricFlag(i,j){
+  const rows=document.querySelectorAll('.entry')[i]?.querySelectorAll('.bullet-row');
+  if(!rows||!rows[j]) return;
+  const b=data.experience[i].bullets[j];
+  const existing=rows[j].querySelector('.metric-flag');
+  const html = b.text.trim()
+    ? (hasMetric(b.text)
+        ? '<span class="metric-flag ok">✓ Has a metric</span>'
+        : '<span class="metric-flag warn">⚠ No number — add volume, %, $, or a timeframe</span>')
+    : '';
+  if(existing) existing.outerHTML=html;
+  else if(html){ rows[j].querySelector('.bullet-head').insertAdjacentHTML('afterend',html); }
+}
+
+// XYZ
+function toggleXYZ(key){ ui.xyzOpen[key]=!ui.xyzOpen[key]; renderEditor(); }
+function setXYZ(i,j,k,v){
+  data.experience[i].bullets[j][k]=v; save();
+  const b=data.experience[i].bullets[j];
+  const prev=document.getElementById(`xyzprev_${i}_${j}`);
+  if(prev){ const t=assembleXYZ(b.x,b.y,b.z); prev.textContent=t||'Your assembled bullet will appear here…'; }
+}
+function insertXYZ(i,j){
+  const b=data.experience[i].bullets[j];
+  const t=assembleXYZ(b.x,b.y,b.z);
+  if(!t){ toast('Fill in at least one XYZ field first'); return; }
+  b.text=t; structural(); toast('Bullet inserted');
+}
+
+// Education
+function addEdu(){ data.education.push({school:'',degree:'',dates:'',details:''}); structural(); }
+function removeEdu(i){ data.education.splice(i,1); structural(); }
+function setEdu(i,k,v){ data.education[i][k]=v; afterEdit(); }
+
+// Skills
+function addSkill(){
+  const el=document.getElementById('skillInput');
+  const v=el.value.trim();
+  if(v){ v.split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>{ if(!data.skills.includes(s)) data.skills.push(s); }); }
+  el.value=''; structural();
+  const ne=document.getElementById('skillInput'); if(ne) ne.focus();
+}
+function quickAddSkill(s){ if(!data.skills.includes(s)){ data.skills.push(s); structural(); toast('Added "'+s+'" to skills'); } }
+function removeSkill(i){ data.skills.splice(i,1); structural(); }
+
+// Sections collapse
+function toggleSection(k){ ui.collapsed[k]=!ui.collapsed[k]; renderEditor(); }
+
+/* ============================================================
+   TOP-BAR ACTIONS
+   ============================================================ */
+function downloadPDF(){ window.print(); }
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const name=(data.contact.name||'resume').replace(/\s+/g,'_').toLowerCase();
+  a.href=url; a.download=name+'_resume_data.json'; a.click();
+  URL.revokeObjectURL(url); toast('Data exported');
+}
+function importJSON(ev){
+  const f=ev.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const obj=JSON.parse(rd.result);
+      data=Object.assign(blankData(),obj);
+      // backfill xyz fields on bullets
+      data.experience.forEach(e=>(e.bullets||[]).forEach(b=>{b.x=b.x||'';b.y=b.y||'';b.z=b.z||'';}));
+      save(); renderEditor(); renderResume(); toast('Data imported');
+    }catch(e){ toast('Could not read that file'); }
+  };
+  rd.readAsText(f); ev.target.value='';
+}
+function clearAll(){
+  if(confirm('Clear everything and start fresh? This cannot be undone.')){
+    data=blankData(); save(); renderEditor(); renderResume(); toast('Cleared');
+  }
+}
+
+let _toastT;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(_toastT); _toastT=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ============================================================
+   SAMPLE DATA
+   ============================================================ */
+function loadSample(){
+  data={
+    contact:{name:'Jordan Rivera',title:'Operations Manager',email:'jordan.rivera@email.com',
+      phone:'(555) 123-4567',location:'Austin, TX',linkedin:'linkedin.com/in/jordanrivera',website:''},
+    summary:'Operations manager with 9+ years scaling support and logistics teams. Cut operating costs by 22% and lifted CSAT to 94% by rebuilding workflows and coaching high-performing teams of up to 30.',
+    experience:[
+      {role:'Operations Manager',company:'Brightline Logistics',location:'Austin, TX',dates:'Mar 2021 – Present',
+        bullets:[
+          {text:'Cut average order-fulfillment time by 32% by redesigning the warehouse pick-and-pack workflow, using Lean process mapping and a new WMS rollout.',x:'',y:'',z:''},
+          {text:'Managed a $4.2M annual operating budget across 3 facilities, coming in 8% under budget two years running.',x:'',y:'',z:''},
+          {text:'Scaled the fulfillment team from 12 to 30 while improving on-time shipment rate from 89% to 98%.',x:'',y:'',z:''}
+        ]},
+      {role:'Team Lead, Customer Support',company:'Nimbus SaaS',location:'Remote',dates:'Jun 2017 – Feb 2021',
+        bullets:[
+          {text:'Reduced average ticket resolution time by 41% (from 26h to 15h) by building a tiered triage system in Zendesk.',x:'',y:'',z:''},
+          {text:'Raised customer satisfaction from 81% to 94% over 18 months while handling 150+ tickets per day.',x:'',y:'',z:''}
+        ]}
+    ],
+    education:[
+      {school:'University of Texas at Austin',degree:'B.B.A., Management',dates:'2012 – 2016',details:'Graduated cum laude · GPA 3.8'}
+    ],
+    skills:['Operations Management','Process Improvement','Lean / Six Sigma','Budgeting & Forecasting','Team Leadership','Zendesk','SQL','WMS','KPI Reporting','Vendor Management'],
+    jobDescription:''
+  };
+  data.experience.forEach(e=>e.bullets.forEach(b=>{b.x='';b.y='';b.z='';}));
+  save(); renderEditor(); renderResume(); toast('Sample loaded — edit or clear to start your own');
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderEditor();
+renderResume();
+</script>
+</body>
+</html>
