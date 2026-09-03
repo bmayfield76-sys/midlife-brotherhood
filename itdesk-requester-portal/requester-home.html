@@ -1,0 +1,52 @@
+<!--
+  Commissioner IT Help Desk - Requester Home (ServiceDesk Plus Cloud)
+  Paste this into: Setup > Customization > Self-Service Portal > Home Page (HTML)
+  Paste requester-home.css into the CSS panel of the same screen.
+
+  All SDP hooks are kept intact (id="upper-part-ssp", input-action="search",
+  click-action="load-service-templates-popup", id="create_service_btn", {{{i18n}}} keys),
+  so search and the "Request a Service" popup keep working.
+  Only the "I need something new" card remains; the Issue and Solutions cards are removed.
+-->
+<div class="req-dasboard-maincontainer req-dasboard-itdesk-container cm-hero" id="upper-part-ssp">
+
+    <!-- Star logo, faded into the background (see .cm-watermark in the CSS) -->
+    <div class="cm-watermark" aria-hidden="true"></div>
+
+    <!-- Brand block: white wordmark on navy -->
+    <div class="cm-brand">
+        <div class="cm-wordmark" role="img" aria-label="Commissioner"></div>
+        <div class="cm-rule" aria-hidden="true"></div>
+        <p class="cm-tagline">IT Help Desk</p>
+    </div>
+
+    <!-- Search (unchanged SDP hook) -->
+    <div class="search-req-dashboard cm-search-wrap" id="search-req-dashboard_dummy">
+        <div class="sdpod-input-wrapper req-dashboard-mainsearch cm-search">
+            <input input-action="search" class="sdpod-input-large" data-clickable="true" tabindex="0" placeholder="{{{ssp-search-placeholder}}}"/>
+        </div>
+    </div>
+
+    <!-- The one card we keep: I need something NEW -->
+    <div class="req-dashboard-innerwrapper cm-cards">
+        <div class="req-dashboard-card-wrapper request-service-box cm-card-wrap">
+            <div class="req-dashboard-card req-new cm-card">
+                <div class="req-dashboard-innerchild new-card-ico cm-card-icon" aria-hidden="true"></div>
+                <div class="req-dashboard-innercontent cm-card-body">
+                    <span class="req-dashboard-inner-head cm-eyebrow">
+                        {{{ssp-i-need-something}}}
+                    </span>
+                    <span class="req-dashboard-inner-h2 cm-title">
+                        {{{ssp-new}}}
+                    </span>
+                    <span class="cm-cta">
+                        <button class="req-dashboard-innerbutton cm-btn" click-action="load-service-templates-popup" id="create_service_btn" title="{{{ssp-request-a-service}}}">
+                            {{{ssp-request-a-service}}}
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
