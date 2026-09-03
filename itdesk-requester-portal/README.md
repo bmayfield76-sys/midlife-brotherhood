@@ -6,6 +6,13 @@ The Issue and Solutions cards are removed.
 
 ## Install (one paste, no CSS panel needed)
 
+**Use `requester-home-sdp-safe.html`.** SDP's HTML editor strips `position`, `transform`, flex
+alignment, gradients, `rgba()` borders and `<style>` blocks on save, so the earlier files come back
+broken. This one only uses CSS the editor keeps and was tested against a flex parent with a forced
+background image.
+
+Old notes below are kept for reference.
+
 1. In ServiceDesk Plus Cloud go to **Setup > Customization > Self-Service Portal > Home Page**
    (the screen where the stock template you started from lives).
 2. Select everything in the HTML box, delete it, and paste the full contents of
