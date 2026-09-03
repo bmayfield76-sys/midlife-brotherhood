@@ -1,0 +1,317 @@
+<!--
+  Commissioner IT Help Desk - Requester Home (ServiceDesk Plus Cloud)
+  SINGLE-PASTE VERSION: styles and markup together. Paste this whole block into
+  Setup > Customization > Self-Service Portal > Home Page and save.
+
+  Image URLs: .cm-wordmark = white name logo, .cm-watermark = gold star logo.
+  Both point at _images/88004 right now; swap the star's ID in .cm-watermark if it differs.
+-->
+<style>
+/* =====================================================================
+   Commissioner IT Help Desk - Requester Home
+   Brand: Navy #1B365D | Gold #C99700 | White #FFFFFF
+
+   TWO IMAGE URLS TO CHECK (both were given as _images/88004):
+     .cm-wordmark  -> the white NAME logo (wide, reads on navy)
+     .cm-watermark -> the gold STAR logo (works best as a transparent PNG)
+   If the star has its own image ID, swap it in .cm-watermark below.
+   ===================================================================== */
+
+/* ---------- Hero band (the whole widget) ---------- */
+#upper-part-ssp.cm-hero {
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 560px;
+    padding: 56px 24px 72px !important;
+    margin: 0 !important;
+    background-color: #1B365D !important;
+    background-image: linear-gradient(135deg, #1B365D 0%, #16305A 55%, #102A52 100%) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Gold hairline across the top of the band */
+#upper-part-ssp.cm-hero:before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 5px;
+    background: #C99700;
+}
+
+/* ---------- Star logo as a background watermark ---------- */
+.cm-watermark {
+    position: absolute;
+    right: -90px;
+    top: 50%;
+    width: 640px;
+    height: 640px;
+    transform: translateY(-50%);
+    background-image: url(/app/itdesk/api/v3/ssp_background_images/273837000000728002/_images/88004);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.11;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Everything else sits above the watermark */
+.cm-brand, .cm-search-wrap, .cm-cards { position: relative; z-index: 1; }
+
+/* ---------- Brand block ---------- */
+.cm-brand {
+    text-align: center;
+    margin: 0 auto 36px;
+    max-width: 760px;
+}
+
+.cm-wordmark {
+    width: 100%;
+    max-width: 560px;
+    height: 120px;
+    margin: 0 auto;
+    background-image: url(/app/itdesk/api/v3/ssp_background_images/273837000000728002/_images/88004);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.cm-rule {
+    width: 72px;
+    height: 3px;
+    margin: 18px auto 12px;
+    background: #C99700;
+    border-radius: 2px;
+}
+
+.cm-tagline {
+    margin: 0;
+    color: #FFFFFF;
+    opacity: 0.85;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+
+/* ---------- Search ---------- */
+.cm-search-wrap {
+    max-width: 720px;
+    margin: 0 auto 40px !important;
+    padding: 0 !important;
+    float: none !important;
+}
+
+.cm-search.sdpod-input-wrapper {
+    width: 100% !important;
+    margin: 0 !important;
+}
+
+.cm-search .sdpod-input-large {
+    box-sizing: border-box;
+    width: 100% !important;
+    height: 54px !important;
+    padding: 0 22px !important;
+    border: 2px solid rgba(255,255,255,0.25) !important;
+    border-radius: 999px !important;
+    background: #FFFFFF !important;
+    color: #1B365D !important;
+    font-size: 16px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25) !important;
+    outline: none !important;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.cm-search .sdpod-input-large::placeholder { color: #6B7A90; }
+
+.cm-search .sdpod-input-large:focus {
+    border-color: #C99700 !important;
+    box-shadow: 0 0 0 4px rgba(201,151,0,0.30), 0 10px 30px rgba(0,0,0,0.25) !important;
+}
+
+/* ---------- Card area (single centered card) ---------- */
+.cm-cards.req-dashboard-innerwrapper {
+    display: flex !important;
+    justify-content: center;
+    align-items: stretch;
+    width: 100% !important;
+    max-width: 720px;
+    margin: 0 auto !important;
+    padding: 0 !important;
+}
+
+.cm-card-wrap.req-dashboard-card-wrapper {
+    width: 100% !important;
+    max-width: 720px;
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+}
+
+.cm-card.req-dashboard-card {
+    display: flex !important;
+    align-items: center;
+    gap: 28px;
+    box-sizing: border-box;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 36px 40px !important;
+    background: #FFFFFF !important;
+    border: 0 !important;
+    border-left: 6px solid #C99700 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.30) !important;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.cm-card.req-dashboard-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.35) !important;
+}
+
+/* Replace SDP's stock icon with a gold "+" badge */
+.cm-card-icon.new-card-ico {
+    flex: 0 0 auto;
+    width: 84px !important;
+    height: 84px !important;
+    margin: 0 !important;
+    border-radius: 50%;
+    background: #1B365D !important;
+    background-image: none !important;
+    border: 3px solid #C99700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cm-card-icon.new-card-ico:before {
+    content: "+";
+    color: #C99700;
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: -4px;
+}
+
+.cm-card-body.req-dashboard-innercontent {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: auto !important;
+}
+
+.cm-eyebrow.req-dashboard-inner-head {
+    display: block;
+    color: #C99700 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 0 0 6px !important;
+}
+
+.cm-title.req-dashboard-inner-h2 {
+    display: block;
+    color: #1B365D !important;
+    font-size: 40px !important;
+    font-weight: 800 !important;
+    line-height: 1.05;
+    margin: 0 0 18px !important;
+}
+
+.cm-cta { display: block; }
+
+.cm-btn.req-dashboard-innerbutton {
+    display: inline-block;
+    box-sizing: border-box;
+    min-width: 220px;
+    height: auto !important;
+    padding: 14px 30px !important;
+    background: #1B365D !important;
+    color: #FFFFFF !important;
+    border: 2px solid #1B365D !important;
+    border-radius: 999px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    text-align: center;
+    transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+.cm-btn.req-dashboard-innerbutton:hover,
+.cm-btn.req-dashboard-innerbutton:focus {
+    background: #C99700 !important;
+    border-color: #C99700 !important;
+    color: #1B365D !important;
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.cm-btn.req-dashboard-innerbutton:focus-visible {
+    box-shadow: 0 0 0 4px rgba(201,151,0,0.35);
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 720px) {
+    #upper-part-ssp.cm-hero { padding: 40px 16px 48px !important; min-height: 0; }
+    .cm-watermark { width: 420px; height: 420px; right: -140px; opacity: 0.08; }
+    .cm-wordmark { height: 80px; }
+    .cm-tagline { font-size: 13px; }
+    .cm-card.req-dashboard-card { flex-direction: column; align-items: flex-start; gap: 18px; padding: 26px 22px !important; }
+    .cm-title.req-dashboard-inner-h2 { font-size: 32px !important; }
+    .cm-btn.req-dashboard-innerbutton { width: 100%; }
+}
+</style>
+<div class="req-dasboard-maincontainer req-dasboard-itdesk-container cm-hero" id="upper-part-ssp">
+
+    <!-- Star logo, faded into the background (see .cm-watermark in the CSS) -->
+    <div class="cm-watermark" aria-hidden="true"></div>
+
+    <!-- Brand block: white wordmark on navy -->
+    <div class="cm-brand">
+        <div class="cm-wordmark" role="img" aria-label="Commissioner"></div>
+        <div class="cm-rule" aria-hidden="true"></div>
+        <p class="cm-tagline">IT Help Desk</p>
+    </div>
+
+    <!-- Search (unchanged SDP hook) -->
+    <div class="search-req-dashboard cm-search-wrap" id="search-req-dashboard_dummy">
+        <div class="sdpod-input-wrapper req-dashboard-mainsearch cm-search">
+            <input input-action="search" class="sdpod-input-large" data-clickable="true" tabindex="0" placeholder="{{{ssp-search-placeholder}}}"/>
+        </div>
+    </div>
+
+    <!-- The one card we keep: I need something NEW -->
+    <div class="req-dashboard-innerwrapper cm-cards">
+        <div class="req-dashboard-card-wrapper request-service-box cm-card-wrap">
+            <div class="req-dashboard-card req-new cm-card">
+                <div class="req-dashboard-innerchild new-card-ico cm-card-icon" aria-hidden="true"></div>
+                <div class="req-dashboard-innercontent cm-card-body">
+                    <span class="req-dashboard-inner-head cm-eyebrow">
+                        {{{ssp-i-need-something}}}
+                    </span>
+                    <span class="req-dashboard-inner-h2 cm-title">
+                        {{{ssp-new}}}
+                    </span>
+                    <span class="cm-cta">
+                        <button class="req-dashboard-innerbutton cm-btn" click-action="load-service-templates-popup" id="create_service_btn" title="{{{ssp-request-a-service}}}">
+                            {{{ssp-request-a-service}}}
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

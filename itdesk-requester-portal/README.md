@@ -4,14 +4,20 @@ Branded replacement for the stock "requester dashboard" widget on the self-servi
 Navy #1B365D, gold #C99700, white #FFFFFF. One card only: "I need something New" / "Request a Service".
 The Issue and Solutions cards are removed.
 
-## Install
+## Install (one paste, no CSS panel needed)
 
 1. In ServiceDesk Plus Cloud go to **Setup > Customization > Self-Service Portal > Home Page**
    (the screen where the stock template you started from lives).
-2. Replace the HTML block with the contents of `requester-home.html`.
-3. Paste `requester-home.css` into the CSS panel on the same screen. If there is no CSS panel,
-   wrap the CSS in `<style> ... </style>` and put it at the top of the HTML block.
-4. Save, then open the portal as a requester to check it.
+2. Select everything in the HTML box, delete it, and paste the full contents of
+   **`requester-home-single.html`**. It carries its own `<style>` block at the top.
+3. Save, then open the portal as a requester to check it.
+
+If it saves but comes back unstyled (plain white cards, no navy), the editor stripped the
+`<style>` tag. Paste **`requester-home-inline-fallback.html`** instead. Every style in that one is
+inline on the elements, so nothing can be stripped. It loses only the hover effects and the
+phone breakpoint.
+
+`requester-home.html` + `requester-home.css` are the same thing split in two, kept for reference.
 
 ## The two logo URLs
 
