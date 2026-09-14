@@ -48,6 +48,11 @@ That's what this tool does for you automatically.
 
 ## Getting started
 
+**If you got a link** (from my email): just click it. The kit opens in your browser
+and saves your work there automatically. Bookmark it so you can come back.
+
+**If you got the file** (`resume.html`):
+
 1. Find the file named **`resume.html`**.
 2. **Double-click it.** It opens in your browser (Chrome, Edge, Safari — whatever
    you use). You'll see a note from me, then the tool.
