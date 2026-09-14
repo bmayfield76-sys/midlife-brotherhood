@@ -1,193 +1,167 @@
-# How to Use Your Resume Builder 📄
+# Your Layoff Comeback Kit — How to Use It
 
-Hi! This is a simple, friendly guide to the resume tool that was made for you.
-You don't need to be "techy" to use it. If you can fill out a form online, you
-can do this. Take your time — nothing here can be broken.
+Hey. If you're reading this, you're probably in the middle of one of the hardest
+stretches of your working life. I've been there twice — 13 months in 2010, and
+12 months and a week in 2024. This kit is everything I learned the hard way,
+turned into a tool you can actually use.
 
----
+You don't need to be technical. If you can fill out a form online, you can do
+this. Take your time. Nothing here can be broken.
 
-## What is this thing, and why should I use it?
-
-It's a little program that lives in one file on your computer. You type your
-work history into a form on the left, and a finished, professional-looking
-resume builds itself on the right as you go. When you're happy with it, you save
-it as a PDF and send it to employers.
-
-Here's why it's worth your time:
-
-### 1. It helps your resume actually get *read* by a human
-
-Most companies today use software called an **ATS** (Applicant Tracking System)
-to scan resumes *before* a person ever sees them. If a resume is formatted the
-wrong way — with fancy columns, tables, graphics, or photos — this software gets
-confused, reads your resume as gibberish, and can toss it out. Even a great
-candidate gets auto-rejected.
-
-**This builder is designed from the ground up to sail through that software.** It
-uses a clean, simple layout that the scanners read perfectly every time. You
-don't have to think about it — it's built in.
-
-### 2. It makes your accomplishments sound stronger
-
-The tool gently coaches you to add **numbers** to your resume. "Managed a team"
-is fine. "Managed a team of 12 and boosted sales by 20%" gets interviews.
-Numbers make you memorable and believable. The tool will nudge you whenever a
-line is missing one, and it has a helper (called the **XYZ Builder**) that turns
-a plain sentence into a powerful one for you.
-
-### 3. It tailors your resume to each job
-
-You can paste in a specific job posting, and the tool tells you which important
-words from that posting are missing from your resume — so you can add them (as
-long as they're true for you). Matching the job's language is one of the biggest
-things that gets you noticed.
-
-### 4. It's private and free
-
-Everything stays **on your own computer**. Nothing is uploaded anywhere, there's
-no account to create, no password, no fee, and no ads. Your information is yours.
+— Billy
 
 ---
 
-## Getting started (the only "techy" part — and it's easy)
+## What's in the kit
+
+It's **one file** that opens in your web browser. Inside are four tabs:
+
+| Tab | What it does |
+|---|---|
+| **1. Resume** | Builds a clean resume that gets past the hiring software *and* reads well to a human. |
+| **2. Cover Letter** | Turns your resume into a short, direct cover letter for a specific job in about two minutes. |
+| **3. Interview Cheat Sheet** | Your five go-to stories, the questions to ask them, and a one-page sheet to keep next to you. |
+| **4. First 30 Days** | The checklist I wish someone had handed me on day one. Check things off as you go. |
+
+Everything stays **on your computer**. No account, no password, no fee, nothing
+uploaded anywhere. Works with no internet once you have the file.
+
+---
+
+## Why this matters (the short version)
+
+Most companies now run your resume through software called an **ATS** before a
+person ever sees it. If the format confuses the software — fancy columns,
+tables, graphics — you get tossed before anyone reads a word. You're applicant
+267 out of 339 and you never hear back.
+
+I learned this the expensive way. In 2010 I paid $300 for a professional resume.
+It looked like something a CEO would send. It got zero callbacks in four months.
+A recruiter finally told me: *"A manager isn't going to read all that. Keep it
+simple and direct."* I fixed it and the calls started.
+
+Fourteen years later I used that same "simple" resume and got nothing — because
+now you have to get past the software first. Simple *and* built for the ATS.
+That's what this tool does for you automatically.
+
+---
+
+## Getting started
 
 1. Find the file named **`resume.html`**.
-2. **Double-click it.** It will open in your web browser (Chrome, Edge, Safari,
-   whatever you normally use) and look like a resume tool. That's it — it's open!
+2. **Double-click it.** It opens in your browser (Chrome, Edge, Safari — whatever
+   you use). You'll see a note from me, then the tool.
 
-> 💡 If double-clicking opens a page full of code instead, right-click the file,
-> choose **"Open with,"** and pick your web browser from the list.
+> 💡 If it opens as a page of code, right-click the file → **Open with** → pick
+> your web browser.
 
-You'll see two halves:
-- **Left side** = the form where you type your information.
-- **Right side** = your finished resume, updating live as you type.
-
----
-
-## Filling it out, step by step
-
-Work down the left side from top to bottom. Each section has a title bar you can
-click to open or close it.
-
-### ⭐ Tip: Click "Load sample" first
-At the top of the page there's a **"Load sample"** button. Click it once to see a
-finished example resume fill in. Look at how the example is written — especially
-how each bullet point uses numbers. Then you can either edit that example or
-click **"Clear"** to empty it and start fresh with your own.
-
-### 1. Contact Info
-Type your name, the job title you want (like "Office Manager"), your email,
-phone, city, and LinkedIn if you have one. Skip anything that doesn't apply.
-
-### 2. Professional Summary
-Two or three sentences about who you are and what you're great at. Lead with your
-strongest, most impressive fact. Example:
-> *"Reliable office manager with 10+ years keeping busy offices running smoothly.
-> Cut supply costs by 18% and trained 15 new hires."*
-
-### 3. Work Experience
-Click **"+ Add position"** for each job you've had. Fill in the job title,
-company, location, and dates. Then click **"+ Add accomplishment"** to add bullet
-points about what you did there.
-
-**Watch for the little colored labels under each bullet:**
-- 🟡 A **yellow** label means "this line has no number — try adding one!"
-- 🟢 A **green** label means "great, this line has a number."
-
-Aim for green wherever you honestly can.
-
-### 4. The XYZ Builder (your secret weapon for strong bullets)
-Next to each bullet point there's a small **"XYZ"** button. Click it and a helper
-opens with three boxes. Just fill them in plainly:
-
-- **Y — What did you do?** (e.g., "Reorganized the filing system")
-- **X — What was the result?** (e.g., "cut document retrieval time by half")
-- **Z — What tools or skills did you use?** (e.g., "Microsoft SharePoint")
-
-As you type, the tool writes a polished sentence for you at the bottom. When you
-like it, click **"Insert into bullet"** and it drops the finished line right into
-your resume. Magic. ✨
-
-### 5. Education
-Click **"+ Add education"** and enter your school, degree or certificate, and
-years. Add honors or GPA only if you'd like to.
-
-### 6. Skills
-Type a skill and press **Enter** on your keyboard to add it. Add your tools,
-software, and abilities — especially ones mentioned in the job you want. To
-remove one, click the little **✕** next to it.
-
-### 7. Job Match Analyzer (do this for each job you apply to)
-Scroll to the **"Job Match Analyzer"** section and paste the full job posting
-into the box. The tool instantly shows:
-- A **match score** (a percentage — higher is better).
-- A list of **important words the posting uses that your resume is missing.**
-
-Add those missing words to your resume wherever they're true for you (in your
-skills, summary, or bullet points). Click a missing word to pop it straight into
-your Skills list. Re-paste and watch your score climb.
+**Click "Load sample" first.** It fills in a finished example so you can see how
+a strong resume, cover letter and story bank look. Then either edit it or click
+**Clear** and start with your own.
 
 ---
 
-## Saving your finished resume as a PDF
+## Tab 1 — Resume
 
-When your resume looks good on the right side:
+Fill in the form on the left. Your resume builds itself on the right as you type.
 
-1. Click the red **"Download PDF"** button at the top right.
-2. Your browser's print window pops up.
-3. Where it says **"Destination"** or **"Printer,"** choose **"Save as PDF."**
-4. Click **"Save"** and pick where to keep it (your Desktop is easy to find).
+**Watch the little labels under each accomplishment:**
+- 🟡 **Yellow** = "no number yet." Add one. Volume (*200+ clients*), a percent or
+  dollar figure (*cut costs 18%*), or a timeframe (*2 weeks early*).
+- 🟢 **Green** = good, it has a number.
 
-That PDF is the file you attach to job applications and email to employers. It's
-formatted so the hiring software can read every word.
+**The XYZ button** next to each bullet is your secret weapon. Click it and answer
+three plain questions — *What did you do? What was the result? What tools did
+you use?* — and it writes a strong sentence for you. Click **Use this bullet**.
 
-> 💡 **Why "Save as PDF" and not a screenshot or a photo?** A PDF keeps your words
-> as real, readable text. A screenshot turns your resume into a picture, and the
-> hiring software can't read pictures. Always use the PDF button.
+**Job Match** (bottom of the tab): paste in the job posting. You get a match
+score and a list of important words the posting uses that your resume doesn't.
+Add the ones that are true for you. Click a missing word to add it to Skills.
+Do this for **every** job you apply to.
 
 ---
 
-## Saving your work so you don't lose it
+## Tab 2 — Cover Letter
 
-**Good news:** the tool automatically remembers your information on your computer,
-so if you close it and open `resume.html` again later, your resume is still there.
+Type the company and the role. Add one honest line about *why this company* —
+that one line proves you did your homework, and most people skip it.
 
-**For extra safety** (and to move your resume to another computer), use the
-**"Export data"** button at the top. It saves a small backup file. If you ever
-need it back, click **"Import data"** and choose that file. Think of it like
-saving a document you can reopen later.
+Then **tick 2 or 3 results** from your resume that match what the job asked for.
+The letter writes itself on the right: three paragraphs, direct, done. That's
+all a cover letter needs to do.
+
+---
+
+## Tab 3 — Interview Cheat Sheet
+
+Fill in your **five stories** once. Almost every "tell me about a time when…"
+question is one of these five in disguise:
+
+1. Solved a hard problem
+2. Led or influenced people
+3. Handled conflict
+4. Failed, and what you learned
+5. Delivered under pressure
+
+Keep each one short and end it on a number. The right side becomes a one-page
+sheet with your stories, the questions you'll ask them, and a before / during /
+after checklist. Print it and keep it next to you.
+
+---
+
+## Tab 4 — First 30 Days
+
+This is the list. Day one, week one, every day, ongoing. Check things off as you
+go — the tool remembers. Read the notes under each item; that's where the real
+advice is.
+
+---
+
+## Saving as a PDF
+
+When a document looks right:
+
+1. Click the red **Download PDF** button (top right).
+2. Your browser's print window opens.
+3. Under **Destination** or **Printer**, choose **Save as PDF**.
+4. Save it somewhere you'll find it (your Desktop is fine).
+
+> 💡 **Always use the PDF button — never a screenshot or a photo.** A PDF keeps
+> your words as real text the hiring software can read. A picture of your resume
+> is invisible to it.
+
+---
+
+## Your work is saved automatically
+
+Close it, come back tomorrow, it's all still there. For extra safety — or to
+move it to another computer — click **Back up** to save a small backup file, and
+**Restore** to load it again.
 
 ---
 
 ## Common questions
 
-**Q: I closed it — did I lose everything?**
-No. Just open `resume.html` again and your work will be right where you left it.
+**I closed it — is my work gone?** No. Open `resume.html` again and it's there.
 
-**Q: Can I make different versions for different jobs?**
-Yes. Tailor it for one job, click **"Export data"** to back it up, then adjust it
-for the next job. You can keep as many backup files as you like.
+**Can I make different versions for different jobs?** Yes. Tailor it, hit
+**Back up**, then adjust it for the next one. Keep as many backups as you like.
 
-**Q: Something looks wrong / I want to start over.**
-Click **"Clear"** at the top to wipe everything and begin again. (It asks you to
-confirm first, so you can't clear it by accident.)
+**I want to start over.** Click **Clear** at the top. It asks you to confirm first.
 
-**Q: Do I need internet to use it?**
-No. It works completely offline once the file is on your computer.
+**Do I need internet?** No.
 
-**Q: Is my personal information safe?**
-Yes. Nothing leaves your computer. There's no account, no website collecting your
-info, nothing uploaded anywhere.
+**Is my information private?** Yes. Nothing leaves your computer.
 
 ---
 
-## The short version (once you get the hang of it)
+## The short version
 
-1. Open **`resume.html`**.
-2. Fill in your info — aim for **green** labels (add numbers!).
-3. Use the **XYZ** button to make bullets stronger.
-4. Paste a job posting into the **Job Match Analyzer** and add the missing words.
-5. Click **"Download PDF"** → **"Save as PDF."**
-6. Send it off, and go get that interview. 🎉
+1. Open `resume.html`. Read the note. Click **Load sample** to see how it looks.
+2. **Resume tab** — fill it in, aim for green labels, use XYZ, paste the job posting.
+3. **Cover Letter tab** — company, role, one honest line, pick 3 results.
+4. **Interview tab** — five stories with numbers. Print the sheet.
+5. **First 30 Days** — start checking boxes today.
+6. **Download PDF** → **Save as PDF**. Send it. Apply to five more.
 
-You've got this!
+You're going to be okay. Idleness is the enemy — go.
