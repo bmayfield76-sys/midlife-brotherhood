@@ -25,7 +25,7 @@ So here's the one thing I want you to do today. Not this week. Today.
 
 One. That's the whole assignment. Tomorrow it's five. But today it's one, because the hardest application you'll ever send is the first one.
 
-👉 [Open your Layoff Comeback Kit](https://bmayfield76-sys.github.io/midlife-brotherhood/resume.html)
+👉 [Open your Layoff Comeback Kit](https://midlifebrotherhood.com/wp-content/uploads/2026/09/resumebuilder1.html)
 
 And tonight, before bed, write down three to five things you're going to get done tomorrow. In the morning, write down three things you're grateful for. Wake up grateful, go to sleep accomplished. That one habit kept me sane for a year.
 
