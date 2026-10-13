@@ -12,3 +12,4 @@ Free Layoff Comeback Kit (resume builder, cover letter, interview cheat sheet) a
 
 Static: upload the 11 PNGs in filename order (slide_01_cover through slide_11_cta).
 Source: blog-how-to-navigate-a-layoff.wp.html (Google Drive, blogs folder). Items 1-8 are Billy's own lines, bodies condensed.
+Motion: upload the 10 MP4s in order (slide-01 through slide-10). 8 s loops on a 90 BPM grid; add the song in the Instagram app.
