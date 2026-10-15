@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live carousel</title>
+<style>
+/*FONTS*/
+/*CSS*/
+</style>
+</head>
+<body data-mode="strip">
+<header id="bar">
+  <div class="brand"><span class="flame"></span><b id="p-brand"></b><span class="sep">/</span><span id="p-title"></span><span class="muted" id="p-meta"></span></div>
+  <nav>
+    <div class="seg"><button data-mode="strip" class="on">Strip</button><button data-mode="single">Single</button></div>
+    <div class="seg nums" id="nums"></div>
+    <button id="play">Pause</button><button id="restart">Restart</button>
+    <input id="scrub" type="range" min="0" max="8" step="0.001" value="0" aria-label="Scrub time"><span id="time">0.00s</span>
+    <button id="big" title="Bigger strip (scroll sideways)">Zoom</button>
+    <button id="clean" class="hot" title="Full-screen single slide, no UI (F). Esc to exit.">Record</button>
+    <button id="export" title="Download one exact loop of the current slide (E)">Export</button>
+    <button id="export-all" title="Download all six loops">Export all</button>
+  </nav>
+</header>
+<main id="stage">
+  <div id="wrap">
+    <button id="prev" class="arrow" aria-label="Previous slide">&#8249;</button>
+    <canvas id="view" width="1080" height="1350"></canvas>
+    <button id="next" class="arrow" aria-label="Next slide">&#8250;</button>
+  </div>
+  <div id="strip-labels"></div>
+  <div id="slide-name"></div>
+</main>
+<footer id="hint"><span><b>Strip</b> plays all six in sync, as one scene · <b>Single</b>: drag or ← → to swipe across the seams · <b>1–6</b> jump · <b>Space</b> pause · <b>R</b> restart · <b>F</b> record mode (Esc exits) · <b>E</b> export</span></footer>
+<div id="rec" hidden></div>
+<div id="loading">Heating the grill…</div>
+<script>window.__ASSETS = /*ASSETS*/;</script>
+<script>
+(() => {
+/*JS*/
+})();
+</script>
+</body>
+</html>
