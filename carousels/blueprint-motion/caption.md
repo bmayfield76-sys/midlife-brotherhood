@@ -12,6 +12,6 @@ The Midlife Comeback Blueprint is free: six pillars, a 90-day body foundation, a
 
 Upload the 7 MP4s in order (slide-01 through slide-07). 8 s loops on a 90 BPM grid.
 Add the song in the Instagram app (one track across the post). Pick: "Mass Appeal" (Gang Starr).
-Bio link: https://midlife-brotherhood.kit.com/e31a84f414
+Bio link: https://midlifebrotherhood.com/comeback-blueprint/  (your own landing page; the Kit form https://midlife-brotherhood.kit.com/e31a84f414 is the backup)
 Slide 6 shows an example score (needle settles on 38, Crossroads). It's illustrative, not a claim.
 No testimonials used.
