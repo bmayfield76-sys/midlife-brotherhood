@@ -1,4 +1,4 @@
-<!-- Commissioner IT Help Desk - Requester Home. SDP-SAFE VERSION (v6).
+<!-- Commissioner IT Help Desk - Requester Home. SDP-SAFE VERSION (v7).
      Fits inside the ~400px band SDP forces on this container. Only uses CSS the editor keeps.
      The one image URL below is the white NAME LOGO. -->
 <div class="req-dasboard-maincontainer req-dasboard-itdesk-container" id="upper-part-ssp" style="display:block; box-sizing:border-box; width:100%; height:auto; min-height:0; margin:0; padding:0; background-color:#1B365D; border:0; border-radius:0; overflow:hidden">
@@ -37,8 +37,8 @@
                   <span style="display:block; color:#5B6B82; font-size:13px; line-height:1.3; margin:0">Equipment, software, access, or a new account.</span>
                 </div>
               </td>
-              <td style="padding:0 0 0 16px; vertical-align:middle; text-align:right; border:0; white-space:nowrap">
-                <button class="req-dashboard-innerbutton" click-action="load-service-templates-popup" id="create_service_btn" style="display:inline-block; box-sizing:border-box; min-width:190px; height:auto; margin:0; padding:11px 26px; background-color:#1B365D; color:#FFFFFF; border:2px solid #C99700; border-radius:999px; font-size:15px; font-weight:700; letter-spacing:0.02em; cursor:pointer; text-align:center">
+              <td style="padding:0 0 0 16px; vertical-align:middle; text-align:right; border:0">
+                <button class="req-dashboard-innerbutton" click-action="load-service-templates-popup" id="create_service_btn" style="display:inline-block; box-sizing:border-box; min-width:0; max-width:220px; height:auto; margin:0; padding:11px 22px; line-height:1.25; background-color:#1B365D; color:#FFFFFF; border:2px solid #C99700; border-radius:999px; font-size:15px; font-weight:700; letter-spacing:0.02em; cursor:pointer; text-align:center">
                   {{{ssp-request-a-service}}}
                 </button>
               </td>
@@ -49,8 +49,9 @@
     </div>
 
     <div style="display:block; width:100%; max-width:720px; margin:16px auto 0; padding:0; text-align:center">
-      <a href="/app/itdesk/ui/requests" style="display:inline-block; box-sizing:border-box; margin:0 6px 6px; padding:9px 22px; background-color:transparent; color:#FFFFFF; border:2px solid #C99700; border-radius:999px; font-size:14px; font-weight:600; text-decoration:none; cursor:pointer">Track my requests</a>
-      <button click-action="view-solutions" style="display:inline-block; box-sizing:border-box; margin:0 6px 6px; padding:9px 22px; background-color:transparent; color:#FFFFFF; border:2px solid #C99700; border-radius:999px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit">Browse solutions</button>
+      <button class="req-dashboard-innerbutton" click-action="load-incident-templates-popup" id="create-issue-btn" style="display:inline-block; box-sizing:border-box; margin:0 5px 8px; padding:9px 22px; background-color:transparent; color:#FFFFFF; border:2px solid #C99700; border-radius:999px; font-size:14px; font-weight:600; text-decoration:none; cursor:pointer; font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif">Report an issue</button>
+      <button class="req-dashboard-innerbutton" click-action="view-solutions" style="display:inline-block; box-sizing:border-box; margin:0 5px 8px; padding:9px 22px; background-color:transparent; color:#FFFFFF; border:2px solid #C99700; border-radius:999px; font-size:14px; font-weight:600; text-decoration:none; cursor:pointer; font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif">View solutions</button>
+      <a href="/app/itdesk/ui/requests" style="display:inline-block; box-sizing:border-box; margin:0 5px 8px; padding:9px 22px; background-color:transparent; color:#FFFFFF; border:2px solid #C99700; border-radius:999px; font-size:14px; font-weight:600; text-decoration:none; cursor:pointer; font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif">Track my requests</a>
     </div>
 
   </div>
