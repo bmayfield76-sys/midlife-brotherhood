@@ -164,6 +164,30 @@ const styles = `
 .gender-toggle{display:flex;gap:0;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;margin-top:5px;}
 .gender-btn{flex:1;background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px;cursor:pointer;transition:all 0.2s;}
 .gender-btn.active{background:var(--red);color:#fff;}
+.stats-row.four{grid-template-columns:repeat(4,1fr);gap:6px;}
+.stats-row.four .stat-card{padding:12px 6px;}
+.stats-row.four .stat-num{font-size:22px;}
+.meal-wrap{margin-bottom:8px;}
+.meal-wrap .meal-item{margin-bottom:0;}
+.meal-wrap.open .meal-item{border-bottom-left-radius:0;border-bottom-right-radius:0;border-color:var(--red);}
+.meal-item.has-recipe{cursor:pointer;transition:border-color 0.2s;}
+.meal-item.has-recipe:hover{border-color:var(--grey);}
+.meal-open-hint{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-top:5px;}
+.meal-chevron{color:var(--grey);font-size:16px;transition:transform 0.2s;flex-shrink:0;}
+.meal-chevron.open{transform:rotate(180deg);}
+.recipe-detail{background:#131313;border:0.5px solid var(--red);border-top:none;border-radius:0 0 4px 4px;padding:14px 16px 16px;}
+.recipe-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--grey);margin-bottom:12px;}
+.recipe-toggle{display:flex;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:12px;}
+.recipe-toggle button{flex:1;background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 6px;cursor:pointer;}
+.recipe-toggle button.active{background:var(--red);color:#fff;}
+.recipe-head{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);margin:14px 0 8px;}
+.recipe-list{margin:0;padding-left:18px;}
+.recipe-list li{font-size:14px;color:var(--grey-light);line-height:1.5;margin-bottom:5px;}
+.recipe-list.steps li{margin-bottom:9px;padding-left:3px;}
+.recipe-list li::marker{color:var(--red);}
+.recipe-fine{font-size:12px;color:#6a6a6a;line-height:1.5;margin-top:8px;}
+.recipe-tip{background:rgba(204,34,0,0.08);border-left:2px solid var(--red);border-radius:0 3px 3px 0;font-size:13px;color:var(--grey-light);line-height:1.55;padding:10px 12px;margin-top:14px;}
+.recipe-tip-head{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
 .meal-note{font-size:12px;color:#5a5a5a;margin-top:3px;font-style:italic;}
 .target-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:12px;margin-bottom:12px;}
 .target-cell{text-align:center;}
@@ -470,11 +494,74 @@ function mealTimeMinutes(str) {
   return h * 60 + min;
 }
 
+// The recipe behind a meal row: ingredients scaled to the client's portion,
+// the steps, and the coach's tip.
+function RecipeDetail({ match }) {
+  const { recipe, servings, factor } = match;
+  const scalable = Math.abs(factor - 1) > 0.001;
+  const [mode, setMode] = useState('mine');           // 'mine' | 'full'
+  const f = mode === 'mine' ? factor : 1;
+  const makes = Number(recipe.serves) || 1;
+  const time = recipe.total_time || recipe.prep;
+
+  return (
+    <div className="recipe-detail">
+      <div className="recipe-meta">
+        {time && <span><i className="ti ti-clock"/> {/\//.test(time) ? 'Prep / cook ' : ''}{time}</span>}
+        <span>Your portion: {servings} {servings === 1 ? 'serving' : 'servings'}</span>
+        {recipe.source && <span>{recipe.source}</span>}
+      </div>
+
+      {scalable && (
+        <div className="recipe-toggle">
+          <button className={mode==='mine'?'active':''} onClick={()=>setMode('mine')}>My portion</button>
+          <button className={mode==='full'?'active':''} onClick={()=>setMode('full')}>
+            Recipe as written{makes > 1 ? ' · makes ' + makes : ''}
+          </button>
+        </div>
+      )}
+
+      <div className="recipe-head">Ingredients</div>
+      <ul className="recipe-list">
+        {recipe.ingredients.map((ing,i)=><li key={i}>{MB.scaleIngredient(ing, f)}</li>)}
+      </ul>
+      {scalable && mode === 'mine' && (
+        <div className="recipe-fine">
+          Amounts are scaled to your portion and rounded. The steps below still read as the book wrote them.
+          {makes > 1 && servings < makes ? ' Cooking for the week? Switch to the full recipe and portion it out.' : ''}
+        </div>
+      )}
+
+      {recipe.instructions && recipe.instructions.length > 0 && (
+        <>
+          <div className="recipe-head">Instructions</div>
+          <ol className="recipe-list steps">
+            {recipe.instructions.map((st,i)=><li key={i}>{st}</li>)}
+          </ol>
+        </>
+      )}
+
+      {recipe.tip && (
+        <div className="recipe-tip">
+          <div className="recipe-tip-head">Coach's tip</div>
+          {recipe.tip}
+        </div>
+      )}
+      {recipe.note && <div className="recipe-fine">{recipe.note}</div>}
+    </div>
+  );
+}
+
 function MealsPage({ user, profile }) {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lib, setLib] = useState(MB.RECIPES);
+  const [openId, setOpenId] = useState(null);
 
-  useEffect(()=>{ loadMeals(); },[]);
+  useEffect(()=>{
+    loadMeals();
+    MB.loadLibrary(sb, recipes => setLib(recipes));
+  },[]);
 
   async function loadMeals() {
     const { data } = await sb.from('meal_plans').select('*').eq('user_id',user.id);
@@ -513,7 +600,7 @@ function MealsPage({ user, profile }) {
       <div className="greeting-name">{isWeekPlan ? weekdays[todayIdx] + "'s Meals" : "Today's Meals"}</div>
 
       {today.length>0 && (
-        <div className="stats-row" style={{marginBottom:16}}>
+        <div className="stats-row four" style={{marginBottom:16}}>
           <div className="stat-card"><div className="stat-num">{totals.cal}</div><div className="stat-label">Calories</div></div>
           <div className="stat-card"><div className="stat-num">{totals.pro}g</div><div className="stat-label">Protein</div></div>
           <div className="stat-card"><div className="stat-num">{totals.carb}g</div><div className="stat-label">Carbs</div></div>
@@ -539,17 +626,26 @@ function MealsPage({ user, profile }) {
       {loading && <div className="loading">Loading your plan...</div>}
       {!loading && today.length===0 && <div className="loading">No meal plan assigned yet. Coach Billy will add yours soon.</div>}
 
-      {realMeals.map(m=>(
-        <div key={m.id} className="meal-item">
-          <div className="meal-time">{m.meal_time}</div>
-          <div style={{flex:1}}>
-            <div className="meal-name">{m.meal_name}</div>
-            <div className="meal-macros">{m.protein}g protein · {m.carbs}g carbs · {m.fat}g fat</div>
-            {m.notes && m.notes !== 'coach adjustment' && <div className="meal-note">{m.notes}</div>}
+      {realMeals.map(m=>{
+        const match = MB.recipeForPlanRow(lib, m);
+        const open = openId === m.id;
+        return (
+          <div key={m.id} className={`meal-wrap${open?' open':''}`}>
+            <div className={`meal-item${match?' has-recipe':''}`} onClick={()=>match && setOpenId(open ? null : m.id)}>
+              <div className="meal-time">{m.meal_time}</div>
+              <div style={{flex:1}}>
+                <div className="meal-name">{m.meal_name}</div>
+                <div className="meal-macros">{m.protein}g protein · {m.carbs}g carbs · {m.fat}g fat</div>
+                {m.notes && m.notes !== 'coach adjustment' && <div className="meal-note">{m.notes}</div>}
+                {match && <div className="meal-open-hint">{open ? 'Hide recipe' : 'Tap for the recipe'}</div>}
+              </div>
+              <div className="meal-cals">{m.calories}</div>
+              {match && <i className={`ti ti-chevron-down meal-chevron${open?' open':''}`}/>}
+            </div>
+            {open && match && <RecipeDetail match={match}/>}
           </div>
-          <div className="meal-cals">{m.calories}</div>
-        </div>
-      ))}
+        );
+      })}
 
       {adjustments.length>0 && (
         <div className="plan-adjust" style={{marginTop:12}}>

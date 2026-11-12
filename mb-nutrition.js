@@ -641,6 +641,64 @@ function dayToPlanRows(day, userId, dayOfWeek) {
   return rows;
 }
 
+/* ====================================================== recipe viewing ==== */
+/* Turn 1.375 into "1 3/8". Finer steps for small amounts, coarser for big. */
+function niceAmount(v) {
+  if (!(v > 0)) return '0';
+  var step = v < 1 ? 8 : v < 10 ? 4 : 2;
+  var n = Math.max(1, Math.round(v * step)), whole = Math.floor(n / step), rem = n % step;
+  if (!rem) return String(whole);
+  var g = (function gcd(a, b) { return b ? gcd(b, a % b) : a; })(rem, step);
+  var frac = (rem / g) + '/' + (step / g);
+  return whole ? whole + ' ' + frac : frac;
+}
+
+/* Scale the leading quantity of an ingredient line. "1 1/2 cups rice" x 1.5
+   becomes "2 1/4 cups rice". Lines with no leading amount ("Salt to taste")
+   and things that only look like amounts ("90/10 ground beef") pass through. */
+var QTY = '(\\d+\\s+\\d+\\/(?:2|3|4|8|16)(?!\\d)|\\d+\\/(?:2|3|4|8|16)(?!\\d)|\\d+(?:\\.\\d+)?)';
+var QTY_LINE = new RegExp('^' + QTY + '(?:(\\s*(?:to|-|\\u2013)\\s*)' + QTY + ')?(?=\\s|$)');
+function qtyValue(t) {
+  var mixed = t.match(/^(\d+)\s+(\d+)\/(\d+)$/);
+  if (mixed) return parseInt(mixed[1], 10) + parseInt(mixed[2], 10) / parseInt(mixed[3], 10);
+  var frac = t.match(/^(\d+)\/(\d+)$/);
+  if (frac) return parseInt(frac[1], 10) / parseInt(frac[2], 10);
+  return parseFloat(t);
+}
+function scaleIngredient(text, factor) {
+  text = String(text || '');
+  if (!(factor > 0) || Math.abs(factor - 1) < 0.001) return text;
+  var m = text.match(QTY_LINE);
+  if (!m) return text;
+  if (/^\s*%/.test(text.slice(m[0].length))) return text;
+  var top = qtyValue(m[3] || m[1]) * factor;
+  var out = niceAmount(qtyValue(m[1]) * factor);
+  if (m[3]) out += m[2] + niceAmount(qtyValue(m[3]) * factor);
+  /* "2 cup" reads wrong. Fix the unit word when the amount crosses one. */
+  var rest = text.slice(m[0].length);
+  var um = rest.match(/^(\s+)(cups?|scoops?|slices?|cloves?|cans?|stalks?|pieces?|packets?|sprigs?)\b/i);
+  if (um) {
+    var word = um[2], plural = /s$/i.test(word);
+    if (top > 1 && !plural) rest = um[1] + word + 's' + rest.slice(um[0].length);
+    else if (top <= 1 && plural) rest = um[1] + word.slice(0, -1) + rest.slice(um[0].length);
+  }
+  return out + rest;
+}
+
+/* Match a meal_plans row back to its recipe: by id when the row has one,
+   otherwise by name, ignoring the "(1.5 servings)" suffix on assigned rows. */
+function recipeForPlanRow(lib, row) {
+  var name = String(row.meal_name || ''), servings = Number(row.servings) || 0;
+  var sm = name.match(/\s*\(([\d.]+)\s+servings?\)\s*$/i);
+  if (sm) { name = name.slice(0, sm.index); if (!servings) servings = parseFloat(sm[1]); }
+  if (!servings) servings = 1;
+  var hit = null, i, key = name.trim().toLowerCase();
+  if (row.recipe_id) for (i = 0; i < lib.length; i++) if (String(lib[i].id) === String(row.recipe_id)) { hit = lib[i]; break; }
+  if (!hit) for (i = 0; i < lib.length; i++) if (String(lib[i].name || '').trim().toLowerCase() === key) { hit = lib[i]; break; }
+  if (!hit || !(hit.ingredients && hit.ingredients.length)) return null;
+  return { recipe: hit, servings: servings, factor: servings / (Number(hit.serves) || 1) };
+}
+
 /* ================================================= recipe text importer ==== */
 /* Accepts the cookbook's own layout, one or many recipes in one paste.        */
 var NUM = '([\\d,]+(?:\\.\\d+)?)';
@@ -3196,6 +3254,7 @@ global.MB = {
   scoreTotals: scoreTotals, slotsForMealCount: slotsForMealCount,
   /* importing */
   parseRecipes: parseRecipes, macroCheck: macroCheck, portionText: portionText,
+  scaleIngredient: scaleIngredient, niceAmount: niceAmount, recipeForPlanRow: recipeForPlanRow,
   loadLibrary: loadLibrary, normalizeRow: normalizeRow,
   recomputeDay: recomputeDay, cloneDay: cloneDay, poolFor: poolFor
 };

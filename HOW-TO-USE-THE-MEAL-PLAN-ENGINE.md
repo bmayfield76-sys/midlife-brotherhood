@@ -20,6 +20,8 @@ Then **Build My Day** assembles breakfast, lunch, dinner, and snacks from the co
 
 **Meals tab.** Shows today's meals in clock order with a bar for each macro against his target. If you assigned a week, it shows the right day automatically.
 
+Tapping a meal opens the recipe: ingredients, steps, and your coach's tip. The ingredient amounts are scaled to his portion, so if you assigned 1.5 servings of the oatmeal bowl he sees 3/4 cup of oats, not a math problem. A toggle flips back to the recipe as the book wrote it, which is what he wants when he's batch cooking a four-serving recipe for the week. A meal you typed in by hand on the Meal Plans tab has no recipe behind it, so it just isn't tappable.
+
 ## What you do
 
 **Plan Builder tab.** Pending requests sit at the top. Click **Open in builder** and the client's plan loads as something you can edit: swap any meal from the dropdown, bump servings up or down with the plus and minus, or remove a meal. The totals recalculate as you go.
