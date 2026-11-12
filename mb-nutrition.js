@@ -297,6 +297,15 @@ function poolFor(lib, type) {
   });
 }
 
+/* A plan a man will actually cook beats one that is two grams closer. Nudge
+   the solver toward normal portions: one serving is free, a double costs. */
+var PORTION_WEIGHT = 0.03;
+function portionCost(mults) {
+  var c = 0;
+  for (var i = 0; i < mults.length; i++) c += Math.abs(mults[i] - 1);
+  return c * PORTION_WEIGHT;
+}
+
 /* Pick the multiplier for each slot by coordinate descent. Fast, and it scales
    when the library grows past a few dozen recipes.                           */
 function fitMultipliers(picks, T, mults, weights) {
@@ -309,7 +318,7 @@ function fitMultipliers(picks, T, mults, weights) {
         m[i] = mults[j];
         var tot = emptyTotals();
         for (var k = 0; k < picks.length; k++) addInto(tot, picks[k], m[k]);
-        var sc = scoreTotals(tot, T, weights);
+        var sc = scoreTotals(tot, T, weights) + portionCost(m);
         if (sc < bestScore - 1e-9) { bestScore = sc; bestVal = mults[j]; }
       }
       if (m[i] !== bestVal) moved = true;
@@ -397,7 +406,7 @@ function buildDay(lib, T, opts) {
     var m = fitMultipliers(picks, T, mults, weights);
     var tot = emptyTotals();
     for (var k = 0; k < picks.length; k++) addInto(tot, picks[k], m[k]);
-    var sc = scoreTotals(tot, T, weights);
+    var sc = scoreTotals(tot, T, weights) + portionCost(m);
     for (var k2 = 0; k2 < picks.length; k2++) sc += (penalty[picks[k2].id] || 0);
     if (!best || sc < best.score) best = { score: sc, picks: picks, mults: m, totals: tot };
   }
@@ -582,6 +591,15 @@ function fitLabel(day, T) {
   if (worst <= 0.10) return { key: 'close',   label: 'Close enough', hint: 'Within 10%. Good enough to eat and adjust later.' };
   if (worst <= 0.20) return { key: 'loose',   label: 'Loose fit',   hint: 'One macro is off by more than 10%. Worth a manual tweak.' };
   return { key: 'poor', label: 'Poor fit', hint: 'The library cannot reach this target. Add recipes or move the split.' };
+}
+
+/* When the calorie target outruns the meal count, portions go double. Say so. */
+function portionNote(day) {
+  var big = 0, n = (day.meals || []).length;
+  for (var i = 0; i < n; i++) if (day.meals[i].servings >= 1.75) big++;
+  if (n && big >= Math.ceil(n / 2))
+    return 'Most of these are double portions. Add a meal or a snack and the plates go back to normal size.';
+  return null;
 }
 
 /* -------------------------------------------------------- meal clock ------- */
@@ -3174,7 +3192,7 @@ global.MB = {
   calcTargets: calcTargets, guardrails: guardrails,
   /* planning */
   buildDay: buildDay, closeGap: closeGap, buildWeek: buildWeek, findMeals: findMeals,
-  fitLabel: fitLabel, slotTime: slotTime, dayToPlanRows: dayToPlanRows,
+  fitLabel: fitLabel, portionNote: portionNote, slotTime: slotTime, dayToPlanRows: dayToPlanRows,
   scoreTotals: scoreTotals, slotsForMealCount: slotsForMealCount,
   /* importing */
   parseRecipes: parseRecipes, macroCheck: macroCheck, portionText: portionText,

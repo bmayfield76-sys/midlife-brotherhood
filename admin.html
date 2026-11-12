@@ -1166,7 +1166,7 @@ function DayEditor({ day, targets, lib, label, onChange, onShuffle }) {
           );
         })}
       </div>
-      <div className="pb-note">{fit.hint}</div>
+      <div className="pb-note">{fit.hint}{MB.portionNote(day) ? ' ' + MB.portionNote(day) : ''}</div>
     </div>
   );
 }
@@ -1324,7 +1324,7 @@ function PlanBuilderTab({ coachId }) {
         };
         return {slot: pm.slot, recipe, servings: pm.servings || 1,
                 calories: pm.calories, protein: pm.protein, carbs: pm.carbs, fat: pm.fat, fiber: 0};
-      }), adjustments: [], totals: MB.cloneDay({meals:[],adjustments:[]}).totals };
+      }), adjustments: [] };
       MB.recomputeDay(d, T);
       setDay(d);
     }
@@ -1500,7 +1500,7 @@ function PlanBuilderTab({ coachId }) {
                 {MB.SPLITS.map(sp=>(
                   <button key={sp.key} className={`split-btn${splitKey===sp.key?' active':''}`} onClick={()=>setSplitKey(sp.key)}>
                     <span className="split-nums">{sp.key==='custom'?'Custom':`${Math.round(sp.p*100)}/${Math.round(sp.c*100)}/${Math.round(sp.f*100)}`}</span>
-                    <span className="split-name">{sp.label}</span>
+                    <span className="split-name">{sp.key==='custom'?'Special cases':sp.label}</span>
                   </button>
                 ))}
               </div>
