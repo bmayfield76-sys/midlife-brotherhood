@@ -4,13 +4,17 @@ The app now does the math and the menu. A client enters his stats, the app runs 
 
 ## Setup (10 minutes, once)
 
-**1. Put the new file next to the other two.** There are three files that have to live in the same folder wherever the app is hosted: `index.html`, `admin.html`, and the new `mb-nutrition.js`. If `mb-nutrition.js` is missing, both pages break. That file holds the formulas, the plan builder, and all 56 recipes from The Muscle Chef and The Long Game.
+**1. Put the new file next to the other two.** There are three files that have to live in the same folder wherever the app is hosted: `index.html`, `admin.html`, and `mb-nutrition.js`. If `mb-nutrition.js` is missing, both pages break. That file holds the formulas and the plan builder. It holds no recipes.
 
 **2. Run the SQL.** Open Supabase, go to SQL Editor, start a new query, paste in everything from `supabase-meal-engine.sql`, and hit Run. It only adds things. It doesn't touch your existing clients, messages, or meal plans, and it's safe to run twice.
 
-**3. Load the cookbooks into the table.** Open the coach dashboard, click **Recipes**, then **Load both cookbooks**. That copies all 56 recipes into your database so you can edit them.
+**3. Load the recipes.** Your recipes live in the Supabase `recipes` table and nowhere else. If the Recipes tab in the coach dashboard already lists them, you're done. If it says the library is empty, run your private `recipes-seed.sql` backup in the SQL Editor the same way as step 2, or paste the recipes in with **Add recipes**.
 
-If you skip steps 2 and 3, the app still works. It runs on the built-in copy of both books. You just can't add cookbooks, edit recipes, save a client's stats, or assign a seven-day plan with a different menu each day.
+## Where the recipes live, and why
+
+The recipes are paid content, so they are not in this repo and not in any file the website serves. Anyone can open a website's files without logging in; only a signed-in client can read the `recipes` table. Keep `recipes-seed.sql` somewhere private (your computer, a private Drive folder). Don't add it to the repo.
+
+Without recipes in the table the calculators still work, but the plan builder has nothing to build from and says so.
 
 ## What your clients see
 
