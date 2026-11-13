@@ -222,6 +222,11 @@ const styles = `
 .pm-serv span{flex:1;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);}
 .pm-macros{font-size:11px;color:var(--grey);text-align:right;line-height:1.35;}
 .pm-macros b{display:block;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);font-weight:normal;}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+.food-chip{background:rgba(204,34,0,.14);border:0.5px solid var(--red);border-radius:20px;color:var(--white);font-size:12px;padding:5px 11px;cursor:pointer;transition:all .15s;}
+.food-chip.off{background:none;border-color:var(--border);color:#5a5a5a;text-decoration:line-through;}
+.pm-row.kl{grid-template-columns:72px 1fr 1fr 110px;}
+.pm-time{font-size:12px;color:var(--grey);}
 .plan-adjust{background:rgba(204,34,0,.07);border:0.5px solid rgba(204,34,0,.22);border-radius:3px;padding:11px 12px;margin:10px 0;}
 .plan-adjust-head{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:7px;}
 .plan-adjust-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--grey-light);padding:3px 0;}
@@ -1171,6 +1176,62 @@ function DayEditor({ day, targets, lib, label, onChange, onShuffle }) {
   );
 }
 
+// One Klein Method day: swap any protein, carb, or snack. Estimates are for
+// the coach only; the client sees portions and prep, never these numbers.
+function KleinDayEditor({ day, label, onChange, onShuffle }) {
+  function change(fn) { const next = MB.cloneKleinDay(day); fn(next); onChange(MB.kleinRecompute(next)); }
+  const codeFor = slot => slot.charAt(0);
+  const est = day.estimate;
+
+  return (
+    <div className="day-card">
+      <div className="day-head">
+        <div className="day-title">{label}</div>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div className="fit-badge">about {est.calories} cal · {est.protein}P / {est.carbs}C / {est.fat}F · {est.fatPct}% fat</div>
+          {onShuffle && <button className="btn-grey" onClick={onShuffle}><i className="ti ti-refresh"/> Shuffle</button>}
+        </div>
+      </div>
+
+      {day.meals.map((m,i)=>(
+        <div key={i} className="pm-row kl">
+          <div className="pm-slot">{m.slot}</div>
+          <select value={m.proteinKey} onChange={e=>change(d=>{ d.meals[i].proteinKey = e.target.value; })}>
+            {MB.KLEIN_PROTEINS.filter(f=>f.meals.indexOf(codeFor(m.slot))>=0 || f.key===m.proteinKey).map(f=>(
+              <option key={f.key} value={f.key}>{day.portions.proteinOz} oz {f.name}</option>
+            ))}
+          </select>
+          <select value={m.carbKey} onChange={e=>change(d=>{ d.meals[i].carbKey = e.target.value; })}>
+            {MB.KLEIN_CARBS.filter(f=>f.meals.indexOf(codeFor(m.slot))>=0 || f.key===m.carbKey).map(f=>(
+              <option key={f.key} value={f.key}>{f.fixed ? f.name + ', package serving' : day.portions.carbOz + ' oz ' + f.name}</option>
+            ))}
+          </select>
+          <div className="pm-macros"><b>~{m.est.calories}</b>{m.est.protein}P · {m.est.carbs}C · {m.est.fat}F</div>
+        </div>
+      ))}
+
+      {day.snacks.map((sn,i)=>(
+        <div key={'s'+i} className="pm-row kl">
+          <div className="pm-slot">snack</div>
+          <select value={sn.key} onChange={e=>change(d=>{ d.snacks[i].key = e.target.value; })}>
+            {MB.KLEIN_SNACKS.map(f=><option key={f.key} value={f.key}>{f.name}</option>)}
+          </select>
+          <div className="pm-time">{sn.time}</div>
+          <div className="pm-macros"><b>~{sn.est.calories}</b>{sn.est.protein}P · {sn.est.carbs}C · {sn.est.fat}F</div>
+        </div>
+      ))}
+
+      <div className="plan-adjust">
+        <div className="plan-adjust-head">Healthy fats</div>
+        <div className="plan-adjust-row"><span>{day.fatText}</span><b>~{day.fatEst.calories} cal</b></div>
+      </div>
+      <div className="pb-note">
+        Every main meal also gets vegetables: {day.portions.vegText}. The numbers here are a rough estimate for you. Your client only sees ounces, cups, and how to cook it.
+      </div>
+    </div>
+  );
+}
+
 function PlanBuilderTab({ coachId }) {
   const [clients, setClients] = useState([]);
   const [selectedId, setSelectedId] = useState('');
@@ -1197,6 +1258,14 @@ function PlanBuilderTab({ coachId }) {
   const [seed, setSeed] = useState(1);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Plan style: cookbook recipes hitting macro targets, or Klein Method portions.
+  const [method, setMethod] = useState('recipes');
+  const [kGoal, setKGoal] = useState('hold');
+  const [kSnacks, setKSnacks] = useState(2);
+  const [kOff, setKOff] = useState({});
+  const [kDay, setKDay] = useState(null);
+  const [kWeek, setKWeek] = useState(null);
   const [confirming, setConfirming] = useState(false);
   const [saved, setSaved] = useState('');
 
@@ -1224,6 +1293,7 @@ function PlanBuilderTab({ coachId }) {
   function selectClient(uid) {
     setSelectedId(uid);
     setTargets(null); setDay(null); setWeek(null); setSaved(''); setError(''); setConfirming(false);
+    setKDay(null); setKWeek(null);
     const c = clients.filter(x=>x.id===uid)[0];
     if (!c) return;
     setSex(c.sex || 'male');
@@ -1282,11 +1352,51 @@ function PlanBuilderTab({ coachId }) {
     }, 20);
   }
 
+  function switchMethod(m) {
+    setMethod(m); setError(''); setSaved(''); setConfirming(false);
+    setDay(null); setWeek(null); setKDay(null); setKWeek(null);
+  }
+
+  const kExcluded = () => Object.keys(kOff).filter(k => kOff[k]);
+  const kPortions = MB.kleinPortions(weight, kGoal);
+
+  // How a Klein plan stacks up against the client's maintenance, when the
+  // formulas have been run for him. Coach-only.
+  const kMaint = Number((clients.filter(c=>c.id===selectedId)[0]||{}).tdee_average) || 0;
+  const kEstCal = kWeek ? Math.round(kWeek.reduce((n,d)=>n + d.estimate.calories, 0) / kWeek.length)
+                        : kDay ? kDay.estimate.calories : 0;
+  const kUnderPct = kMaint && kEstCal ? Math.round((1 - kEstCal / kMaint) * 100) : null;
+
+  function buildKlein(mode, nextSeed) {
+    const s = nextSeed == null ? seed : nextSeed; setSeed(s);
+    setSaved(''); setConfirming(false);
+    const opts = {goal: kGoal, snacks: kSnacks, seed: s, exclude: kExcluded()};
+    if (mode === 'week') {
+      const w = MB.buildKleinWeek(weight, opts);
+      if (w.error) { setError(w.error); setKWeek(null); return; }
+      setError(''); setKDay(null); setKWeek(w.days);
+    } else {
+      const d = MB.buildKleinDay(weight, opts);
+      if (d.error) { setError(d.error); setKDay(null); return; }
+      setError(''); setKWeek(null); setKDay(d);
+    }
+  }
+
   // Pull a client-submitted plan into the builder so it can be edited, not
   // just rubber-stamped.
   function loadRequest(req) {
     const t = req.targets || {};
     setSelectedId(req.user_id);
+    if (t.method === 'klein') {
+      setMethod('klein'); setTargets(null); setDay(null); setWeek(null); setError(''); setSaved(''); setConfirming(false);
+      setWeight(t.weightLbs ? Math.round(t.weightLbs) : '');
+      setKGoal(t.goal || 'hold');
+      setKSnacks(t.snacks || 2);
+      const offMap = {}; (t.exclude || []).forEach(k => { offMap[k] = true; }); setKOff(offMap);
+      setKWeek(null); setKDay(MB.kleinDayFromJson(req.plan || {}));
+      return;
+    }
+    setMethod('recipes'); setKDay(null); setKWeek(null);
     if (t.input) {
       setSex(t.input.sex || 'male');
       setAge(t.input.age || '');
@@ -1343,15 +1453,20 @@ function PlanBuilderTab({ coachId }) {
   const clientName = (clients.filter(c=>c.id===selectedId)[0]||{}).name || '';
 
   async function assign() {
-    if (!selectedId || !targets) return;
+    const klein = method === 'klein';
+    if (!selectedId || (!klein && !targets)) return;
     setBusy(true);
     const rows = [];
-    if (week) {
+    if (klein) {
+      if (kWeek) kWeek.forEach((d,i)=>{ MB.kleinDayToPlanRows(d, selectedId, i).forEach(r=>rows.push(r)); });
+      else if (kDay) MB.kleinDayToPlanRows(kDay, selectedId, null).forEach(r=>rows.push(r));
+    } else if (week) {
       week.forEach((d,i)=>{ MB.dayToPlanRows(d, selectedId, i).forEach(r=>rows.push(r)); });
     } else if (day) {
       MB.dayToPlanRows(day, selectedId, null).forEach(r=>rows.push(r));
     }
     if (!rows.length) { setBusy(false); return; }
+    const isWeek = klein ? !!kWeek : !!week;
 
     // Replace whatever plan they are on, then write the new one.
     const del = await sb.from('meal_plans').delete().eq('user_id', selectedId);
@@ -1366,11 +1481,31 @@ function PlanBuilderTab({ coachId }) {
       if (ins.error) { setError('Could not save the plan: ' + ins.error.message); setBusy(false); return; }
       setSaved('Plan assigned to ' + clientName + '. Heads up: the extra columns are missing, so servings and day-of-week were not stored. Run supabase-meal-engine.sql to keep them.');
     } else {
-      setSaved('Plan assigned to ' + clientName + '.' + (week ? ' Seven days.' : ''));
+      setSaved((klein ? 'Klein Method plan' : 'Plan') + ' assigned to ' + clientName + '.' + (isWeek ? ' Seven days.' : ''));
+    }
+
+    if (klein) {
+      // No macro targets on a Klein plan. Clear them so the client's Meals tab
+      // does not measure portions against numbers he is not tracking.
+      try {
+        await sb.from('profiles').update({
+          target_calories: null, target_protein: null, target_carbs: null, target_fat: null,
+          macros_updated_at: new Date().toISOString()
+        }).eq('id', selectedId);
+      } catch (e) { /* pre-migration, skip */ }
+      try {
+        const p = (kDay || kWeek[0]).portions;
+        await sb.from('messages').insert({
+          sender_id: coachId, recipient_id: selectedId, from_coach: true,
+          content: 'Your new plan is live, Klein Method style. Every main meal: ' + p.proteinOz + ' oz of lean protein and ' +
+            p.carbOz + ' oz of carbs, both weighed cooked, plus all the vegetables you want. No macro math.' +
+            (isWeek ? ' Seven days of meals, check the Meals tab each morning.' : ' Check the Meals tab.')
+        });
+      } catch (e) { /* message is a nicety, not the job */ }
     }
 
     // Save the targets on the profile and tell the client.
-    try {
+    if (!klein) try {
       await sb.from('profiles').update({
         sex, age: parseFloat(age) || null,
         height_in: (parseFloat(heightFt)||0)*12 + (parseFloat(heightIn)||0) || null,
@@ -1385,7 +1520,7 @@ function PlanBuilderTab({ coachId }) {
       }).eq('id', selectedId);
     } catch (e) { /* pre-migration, skip */ }
 
-    try {
+    if (!klein) try {
       await sb.from('messages').insert({
         sender_id: coachId, recipient_id: selectedId, from_coach: true,
         content: 'Your new plan is live. ' + targets.calories + ' calories, ' +
@@ -1403,13 +1538,18 @@ function PlanBuilderTab({ coachId }) {
   }
 
   const customSum = Number(cp)+Number(cc)+Number(cf);
-  const planRowCount = week ? week.reduce((n,d)=>n + d.meals.length + (d.adjustments||[]).length, 0)
-                            : day ? day.meals.length + (day.adjustments||[]).length : 0;
+  const kRows = d => d.meals.length + d.snacks.length + 1;
+  const planRowCount = method === 'klein'
+    ? (kWeek ? kWeek.reduce((n,d)=>n + kRows(d), 0) : kDay ? kRows(kDay) : 0)
+    : (week ? week.reduce((n,d)=>n + d.meals.length + (d.adjustments||[]).length, 0)
+            : day ? day.meals.length + (day.adjustments||[]).length : 0);
+  const planIsWeek = method === 'klein' ? !!kWeek : !!week;
+  const planReady = method === 'klein' ? !!(kDay || kWeek) : !!((day || week) && targets);
 
   return (
     <div>
       <div className="section-title">Plan Builder</div>
-      <div className="section-sub">TDEE to macros to meals, then assign it</div>
+      <div className="section-sub">Macros and recipes, or Klein Method portions, then assign it</div>
 
       {requests.length > 0 && (
         <div className="panel">
@@ -1423,8 +1563,9 @@ function PlanBuilderTab({ coachId }) {
                   <div>
                     <div className="req-name">{who}</div>
                     <div className="req-meta">
-                      {t.calories} cal · {t.protein}P / {t.carbs}C / {t.fat}F
-                      {t.split ? ' · ' + t.split.p + '/' + t.split.c + '/' + t.split.f : ''}
+                      {t.method === 'klein'
+                        ? 'Klein Method · ' + Math.round(t.weightLbs) + ' lbs · ' + t.proteinOz + ' oz protein, ' + t.carbOz + ' oz carbs per meal'
+                        : t.calories + ' cal · ' + t.protein + 'P / ' + t.carbs + 'C / ' + t.fat + 'F' + (t.split ? ' · ' + t.split.p + '/' + t.split.c + '/' + t.split.f : '')}
                       {' · '}{timeAgo(req.created_at)}
                     </div>
                   </div>
@@ -1433,10 +1574,15 @@ function PlanBuilderTab({ coachId }) {
                     <button className="btn-grey" onClick={()=>declineRequest(req)}>Dismiss</button>
                   </div>
                 </div>
-                {p.meals && (
+                {p.meals && t.method !== 'klein' && (
                   <div className="req-body">
                     {p.meals.map(m=>m.name + (m.servings!==1?' ×'+m.servings:'')).join(' · ')}
                     {p.fit ? ' — fit: ' + p.fit : ''}
+                  </div>
+                )}
+                {t.method === 'klein' && p.estimate && (
+                  <div className="req-body">
+                    Three main meals and {(p.snacks||[]).length} snacks. Rough estimate: {p.estimate.calories} cal, {p.estimate.protein}P / {p.estimate.carbs}C / {p.estimate.fat}F.
                   </div>
                 )}
                 {(t.flags||[]).filter(f=>f.level==='stop').map((f,i)=>(
@@ -1465,6 +1611,65 @@ function PlanBuilderTab({ coachId }) {
         </div>
 
         {selectedId && (
+          <div className="field" style={{marginBottom:14}}>
+            <label>Plan style</label>
+            <div className="unit-toggle" style={{display:'inline-flex'}}>
+              <button className={`unit-btn${method==='recipes'?' active':''}`} onClick={()=>switchMethod('recipes')}>Cookbook recipes + macros</button>
+              <button className={`unit-btn${method==='klein'?' active':''}`} onClick={()=>switchMethod('klein')}>Klein Method · whole foods</button>
+            </div>
+          </div>
+        )}
+
+        {selectedId && method === 'klein' && (
+          <div>
+            <div className="form-row three">
+              <div className="field"><label>Bodyweight (lbs)</label><input type="number" value={weight} onChange={e=>{setWeight(e.target.value); setKDay(null); setKWeek(null);}}/></div>
+              <div className="field">
+                <label>Portions</label>
+                <select value={kGoal} onChange={e=>{setKGoal(e.target.value); setKDay(null); setKWeek(null);}}>
+                  {MB.KLEIN_GOALS.map(g=><option key={g.key} value={g.key}>{g.label} — {g.hint}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label>Snacks between meals</label>
+                <select value={kSnacks} onChange={e=>{setKSnacks(Number(e.target.value)); setKDay(null); setKWeek(null);}}>
+                  <option value="2">2 — eats 5 times a day</option>
+                  <option value="3">3 — eats 6 times a day</option>
+                  <option value="4">4 — eats 7 times a day</option>
+                </select>
+              </div>
+            </div>
+            <div className="field" style={{marginBottom:12}}>
+              <label>Foods in the rotation — click off anything he won't eat</label>
+              <div className="chip-row">
+                {MB.KLEIN_PROTEINS.concat(MB.KLEIN_CARBS).map(f=>(
+                  <button key={f.key} className={`food-chip${kOff[f.key]?' off':''}`}
+                    onClick={()=>{ setKOff(o=>({...o,[f.key]:!o[f.key]})); setKDay(null); setKWeek(null); }}>{f.name}</button>
+                ))}
+              </div>
+            </div>
+            {kPortions.ok && (
+              <div className="tot-grid" style={{marginTop:0}}>
+                <div className="tot-cell"><div className="tot-label">Protein / main meal</div><div className="tot-val">{kPortions.proteinOz} oz</div><div className="tot-gap on">weighed cooked</div></div>
+                <div className="tot-cell"><div className="tot-label">Carbs / main meal</div><div className="tot-val">{kPortions.carbOz} oz</div><div className="tot-gap on">range {kPortions.carbRange[0]} to {kPortions.carbRange[1]} oz</div></div>
+                <div className="tot-cell"><div className="tot-label">Vegetables / meal</div><div className="tot-val" style={{fontSize:15,lineHeight:1.5}}>{kPortions.vegText}</div><div className="tot-gap on">not weighed</div></div>
+                <div className="tot-cell"><div className="tot-label">Healthy fats / day</div><div className="tot-val">{kPortions.fatServings}</div><div className="tot-gap on">servings, {kPortions.bandLabel}</div></div>
+              </div>
+            )}
+            {kPortions.ok && kPortions.belowTable && (
+              <div className="flag note"><div className="flag-title">Under the chart</div>
+                <div className="flag-body">The Klein portion chart starts at 150 lbs. These are its smallest portions. Trim them by hand if he needs less.</div></div>
+            )}
+            <div className="btn-row">
+              <button className="btn-red" onClick={()=>buildKlein('day', seed)} disabled={!kPortions.ok}>Build One Day</button>
+              <button className="btn-grey" onClick={()=>buildKlein('week', seed)} disabled={!kPortions.ok}>Build Seven Days</button>
+            </div>
+            {!kPortions.ok && <div className="pb-note">Enter his bodyweight to get portions.</div>}
+            {error && <div className="error-msg" style={{textAlign:'left',marginTop:10}}>{error}</div>}
+          </div>
+        )}
+
+        {selectedId && method === 'recipes' && (
           <div>
             <div className="pb-row">
               <div className="field">
@@ -1536,7 +1741,55 @@ function PlanBuilderTab({ coachId }) {
         )}
       </div>
 
-      {targets && (
+      {method === 'klein' && (kDay || kWeek) && (
+        <div className="panel">
+          <div className="panel-title">How it stacks up — your eyes only</div>
+          {kEstCal > 0 && kEstCal < 1500 && (
+            <div className="flag stop" style={{marginTop:0,marginBottom:8}}>
+              <div className="flag-title">About {kEstCal} calories a day is thin, even for a cut</div>
+              <div className="flag-body">The lighter proteins (egg whites, shrimp, white fish) pull the day down. Add a snack or two, move portions to Fuller, or swap in chicken or turkey.</div>
+            </div>
+          )}
+          {kUnderPct === null ? (
+            <div className="pb-note" style={{marginTop:0}}>
+              Rough estimate: about {kEstCal} calories a day. Run his numbers once under Cookbook recipes and this will show how that compares to his maintenance.
+            </div>
+          ) : (
+            <div className={`flag ${kUnderPct > 25 ? 'warn' : 'note'}`} style={{marginTop:0}}>
+              <div className="flag-title">
+                About {kEstCal} cal a day against a maintenance near {kMaint}: {kUnderPct > 0 ? kUnderPct + '% under' : Math.abs(kUnderPct) + '% over'}
+              </div>
+              <div className="flag-body">
+                {kUnderPct > 25
+                  ? 'That is a hard cut for him. Klein portions are set by bodyweight, not activity, so a big or active man lands well under. Add snacks (each is roughly 130 calories of lean protein) or move portions to Fuller.'
+                  : kUnderPct > 5
+                    ? 'A workable deficit. He should lean out steadily on this.'
+                    : 'Close to maintenance. Fine for holding, slow for fat loss.'}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {method === 'klein' && kDay && (
+        <div className="panel">
+          <div className="panel-title">2. The plan — swap anything before it goes out</div>
+          <KleinDayEditor day={kDay} label="Daily template" onChange={setKDay} onShuffle={()=>buildKlein('day', seed+1)}/>
+        </div>
+      )}
+
+      {method === 'klein' && kWeek && (
+        <div className="panel">
+          <div className="panel-title">2. The week — swap anything before it goes out</div>
+          {kWeek.map((d,i)=>(
+            <KleinDayEditor key={i} day={d}
+              label={['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][i]}
+              onChange={nd=>{ const w = kWeek.slice(); w[i] = nd; setKWeek(w); }}/>
+          ))}
+        </div>
+      )}
+
+      {method === 'recipes' && targets && (
         <div className="panel">
           <div className="panel-title">2. Targets</div>
           <div className="bp-hero">
@@ -1581,7 +1834,7 @@ function PlanBuilderTab({ coachId }) {
         </div>
       )}
 
-      {day && targets && (
+      {method === 'recipes' && day && targets && (
         <div className="panel">
           <div className="panel-title">3. The plan — edit anything before it goes out</div>
           <DayEditor day={day} targets={targetObj(targets)} lib={lib} label="Daily template"
@@ -1589,7 +1842,7 @@ function PlanBuilderTab({ coachId }) {
         </div>
       )}
 
-      {week && targets && (
+      {method === 'recipes' && week && targets && (
         <div className="panel">
           <div className="panel-title">3. The week — edit anything before it goes out</div>
           {week.map((d,i)=>(
@@ -1600,9 +1853,9 @@ function PlanBuilderTab({ coachId }) {
         </div>
       )}
 
-      {(day || week) && targets && selectedId && (
+      {planReady && selectedId && (
         <div className="panel">
-          <div className="panel-title">4. Assign</div>
+          <div className="panel-title">{method === 'klein' ? '3' : '4'}. Assign</div>
           {!confirming && (
             <div className="btn-row">
               <button className="btn-green" onClick={()=>setConfirming(true)} disabled={busy}>
@@ -1614,7 +1867,7 @@ function PlanBuilderTab({ coachId }) {
             <div className="confirm-bar">
               <div className="confirm-text">
                 This wipes every meal row {clientName} currently has and replaces it with {planRowCount} new {planRowCount===1?'row':'rows'}
-                {week ? ' across seven days' : ''}. Their old plan is not recoverable.
+                {planIsWeek ? ' across seven days' : ''}. Their old plan is not recoverable.
               </div>
               <div className="btn-row" style={{marginTop:0}}>
                 <button className="btn-green" onClick={assign} disabled={busy}>{busy?'Saving…':'Yes, replace the plan'}</button>
