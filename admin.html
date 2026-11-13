@@ -1174,7 +1174,7 @@ function DayEditor({ day, targets, lib, label, onChange, onShuffle }) {
 function PlanBuilderTab({ coachId }) {
   const [clients, setClients] = useState([]);
   const [selectedId, setSelectedId] = useState('');
-  const [lib, setLib] = useState(MB.RECIPES);
+  const [lib, setLib] = useState([]);
   const [libNote, setLibNote] = useState('');
   const [requests, setRequests] = useState([]);
 
@@ -1207,7 +1207,7 @@ function PlanBuilderTab({ coachId }) {
       setLib(recipes);
       setLibNote(source === 'supabase'
         ? recipes.length + ' recipes in the library'
-        : MB.RECIPES.length + ' built-in Muscle Chef recipes (' + (note || 'recipes table not loaded') + ')');
+        : 'No recipes loaded \u2014 open the Recipes tab');
     });
   },[]);
 
@@ -1253,8 +1253,11 @@ function PlanBuilderTab({ coachId }) {
     return {calories:t.calories, protein:t.protein, carbs:t.carbs, fat:t.fat};
   }
 
+  const NO_LIBRARY = 'The recipe library is empty, so there is nothing to build from. Load your recipes on the Recipes tab first.';
+
   function buildOne(nextSeed) {
     if (!targets) return;
+    if (!lib.length) { setError(NO_LIBRARY); return; }
     setBusy(true); setWeek(null); setSaved('');
     const s = nextSeed == null ? seed : nextSeed; setSeed(s);
     setTimeout(()=>{
@@ -1268,6 +1271,7 @@ function PlanBuilderTab({ coachId }) {
 
   function buildWeek(nextSeed) {
     if (!targets) return;
+    if (!lib.length) { setError(NO_LIBRARY); return; }
     setBusy(true); setDay(null); setSaved('');
     const s = nextSeed == null ? seed : nextSeed; setSeed(s);
     setTimeout(()=>{
@@ -1673,19 +1677,6 @@ function RecipesTab() {
 
   const keyOf = r => (r.name||'').trim().toLowerCase() + '|' + (r.source||'').trim().toLowerCase();
 
-  // Copies the cookbooks that ship inside mb-nutrition.js into the table so
-  // they can be edited. Skips anything already there.
-  async function seedBuiltIn() {
-    setBusy(true);
-    const have = {}; rows.forEach(r=>{ have[keyOf(r)] = 1; });
-    const fresh = MB.RECIPES.filter(r=>!have[keyOf(r)]).map(recipeToRow);
-    if (!fresh.length) { note('Both cookbooks are already in the table. Nothing to add.'); setBusy(false); return; }
-    const { error } = await sb.from('recipes').insert(fresh);
-    if (error) note('Could not load the cookbooks: ' + error.message, true);
-    else note('Loaded ' + fresh.length + ' recipes into the table.');
-    setBusy(false); load();
-  }
-
   function parsePaste() {
     const res = MB.parseRecipes(pasteText, {source: pasteSource.trim() || null, meal_type: pasteType});
     setWarnings(res.warnings);
@@ -1740,7 +1731,6 @@ function RecipesTab() {
   const sources = Array.from(new Set(rows.map(r=>r.source).filter(Boolean)));
   const shown = rows.filter(r=>(!filterType || r.meal_type===filterType) && (!filterSource || r.source===filterSource));
   const counts = {}; rows.filter(r=>r.active).forEach(r=>{ counts[r.meal_type] = (counts[r.meal_type]||0)+1; });
-  const builtInMissing = MB.RECIPES.filter(r=>!rows.some(x=>keyOf(x)===keyOf(r))).length;
 
   return (
     <div>
@@ -1752,9 +1742,9 @@ function RecipesTab() {
           <div className="flag warn">
             <div className="flag-title">The recipes table is not set up yet</div>
             <div className="flag-body">
-              The plan builder still works. It is running on the {MB.RECIPES.length} recipes from The Muscle Chef and The Long Game
-              that ship inside the app. To add more cookbooks or edit a recipe, run <b>supabase-meal-engine.sql</b> once in
-              your Supabase SQL editor, then reload this page.
+              The plan builder has nothing to build from until it is. Run <b>supabase-meal-engine.sql</b> once in your
+              Supabase SQL editor, then run your private <b>recipes-seed.sql</b> backup the same way to load both
+              cookbooks, and reload this page.
             </div>
           </div>
         </div>
@@ -1772,16 +1762,12 @@ function RecipesTab() {
             ))}
           </div>
 
-          {builtInMissing > 0 && (
-            <div className="flag note" style={{marginBottom:12}}>
-              <div className="flag-title">{rows.length === 0 ? 'The table is empty' : builtInMissing + ' built-in recipes are not in the table'}</div>
+          {!loading && rows.length === 0 && (
+            <div className="flag warn" style={{marginBottom:12}}>
+              <div className="flag-title">The library is empty</div>
               <div className="flag-body">
-                {rows.length === 0
-                  ? 'Until it has recipes, the plan builder uses the copy of both cookbooks that ships inside the app. Load them here so you can edit them and add more.'
-                  : 'Load them to bring the table up to the full set from The Muscle Chef and The Long Game.'}
-              </div>
-              <div className="btn-row" style={{marginTop:10}}>
-                <button className="btn-red" onClick={seedBuiltIn} disabled={busy}>{busy?'Loading…':'Load both cookbooks (' + builtInMissing + ')'}</button>
+                The plan builder has nothing to pick from. Run your private <b>recipes-seed.sql</b> backup in the Supabase
+                SQL editor to load both cookbooks, or use Add recipes below to paste them in.
               </div>
             </div>
           )}

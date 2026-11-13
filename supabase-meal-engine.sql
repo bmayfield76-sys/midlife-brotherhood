@@ -182,8 +182,8 @@ create trigger recipes_touch_updated_at
 
 
 -- ============================================================================
---  Done. The app works either way: if this table is empty or missing, both
---  pages fall back to the 56 recipes (The Muscle Chef + The Long Game) built
---  into mb-nutrition.js. To make them editable, open the coach dashboard:
---  Recipes -> Load both cookbooks. That copies all 56 rows into this table.
+--  Done. The recipes table starts empty. Recipes are paid content, so they are
+--  NOT stored in this repo or in the app's files. Load them by running your
+--  private recipes-seed.sql backup here, or paste them in from the coach
+--  dashboard: Recipes -> Add recipes. Only signed-in clients can read them.
 -- ============================================================================

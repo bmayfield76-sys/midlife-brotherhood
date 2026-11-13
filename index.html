@@ -555,7 +555,7 @@ function RecipeDetail({ match }) {
 function MealsPage({ user, profile }) {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [lib, setLib] = useState(MB.RECIPES);
+  const [lib, setLib] = useState([]);
   const [openId, setOpenId] = useState(null);
 
   useEffect(()=>{
@@ -1029,7 +1029,7 @@ function ToolsPage({ user, profile }) {
 
     const [targets, setTargets] = useState(null);
     const [error, setError] = useState('');
-    const [lib, setLib] = useState(MB.RECIPES);
+    const [lib, setLib] = useState([]);
     const [libNote, setLibNote] = useState('');
     const [day, setDay] = useState(null);
     const [seed, setSeed] = useState(1);
@@ -1042,7 +1042,7 @@ function ToolsPage({ user, profile }) {
         setLib(recipes);
         setLibNote(source === 'supabase'
           ? recipes.length + ' recipes in the library'
-          : MB.RECIPES.length + ' recipes from your two cookbooks');
+          : 'Not loaded yet');
       });
     }, []);
 
@@ -1080,6 +1080,10 @@ function ToolsPage({ user, profile }) {
 
     function build(nextSeed) {
       if (!targets) return;
+      if (!lib.length) {
+        setError('Your numbers are set, but the recipe library is not loaded yet. Message Coach Billy and he will build your plan.');
+        return;
+      }
       setBuilding(true);
       const s = nextSeed == null ? seed : nextSeed;
       setSeed(s);
