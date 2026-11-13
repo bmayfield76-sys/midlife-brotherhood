@@ -11,6 +11,7 @@
 <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+<script src="mb-nutrition.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -154,6 +155,112 @@ const styles = `
 .ce-badge{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:2px 8px;border-radius:2px;margin-left:8px;vertical-align:middle;}
 .ce-badge.instant{background:var(--card2);color:var(--grey-light);border:0.5px solid var(--border);}
 .ce-badge.ai{background:var(--red);color:#fff;}
+/* --- tab bar wraps now that there are more tabs ------------------------- */
+.tab-bar{flex-wrap:wrap;height:auto;min-height:52px;padding:8px 24px;}
+
+/* --- these were referenced by the Measurements and Photos tabs but never
+       defined, so both tabs rendered unstyled -------------------------- */
+.meas-table{width:100%;border-collapse:collapse;font-size:13px;}
+.meas-table th{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);text-align:left;padding:8px 10px;border-bottom:0.5px solid var(--border);white-space:nowrap;}
+.meas-table td{padding:9px 10px;border-bottom:0.5px solid #1c1c1c;color:var(--grey-light);white-space:nowrap;}
+.meas-table tbody tr:hover{background:#151515;}
+.meas-table tbody tr:last-child td{border-bottom:none;}
+.photo-month-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);margin:16px 0 8px;}
+.photo-grid-admin{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+.photo-thumb-admin{position:relative;aspect-ratio:3/4;background:#111;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;}
+.photo-thumb-admin img{width:100%;height:100%;object-fit:cover;cursor:pointer;display:block;}
+.photo-thumb-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.72);font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-light);text-align:center;padding:3px;}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out;}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;}
+
+/* --- plan builder ------------------------------------------------------- */
+.pb-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;}
+.pb-row-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px;}
+.split-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.split-btn{background:var(--card2);border:0.5px solid var(--border);border-radius:3px;padding:9px 8px;cursor:pointer;text-align:left;transition:all .15s;}
+.split-btn:hover{border-color:var(--grey);}
+.split-btn.active{background:var(--red);border-color:var(--red);}
+.split-nums{display:block;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:var(--white);line-height:1.1;}
+.split-name{display:block;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-top:1px;}
+.split-btn.active .split-name{color:rgba(255,255,255,.85);}
+.split-hint{font-size:12px;color:var(--grey);margin-top:7px;}
+.bp-hero{background:#0f0f0f;border:0.5px solid var(--border);border-left:3px solid var(--red);border-radius:0 3px 3px 0;padding:14px 16px;}
+.bp-hero-num{font-family:'Bebas Neue',sans-serif;font-size:46px;color:var(--red);line-height:1;}
+.bp-hero-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-top:2px;}
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
+.macro-card{background:var(--card2);border-radius:3px;padding:11px 10px;text-align:center;}
+.macro-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--white);line-height:1;}
+.macro-num span{font-size:15px;color:var(--grey);}
+.macro-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-top:3px;}
+.macro-sub{font-size:11px;color:#666;margin-top:2px;}
+.formula-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;}
+.formula-cell{background:#141414;border-radius:3px;padding:8px 10px;}
+.formula-cell span{display:block;font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);}
+.formula-cell b{font-family:'Bebas Neue',sans-serif;font-size:19px;color:var(--white);font-weight:normal;}
+.flag{border-radius:3px;padding:10px 12px;margin-top:8px;border-left:3px solid var(--grey);background:#141414;}
+.flag.stop{border-left-color:var(--red);background:rgba(204,34,0,.09);}
+.flag.warn{border-left-color:#c99a2e;background:rgba(201,154,46,.08);}
+.flag.note{border-left-color:#4a90d9;background:rgba(74,144,217,.07);}
+.flag-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);}
+.flag-body{font-size:13px;color:var(--grey-light);line-height:1.5;margin-top:4px;}
+.day-card{background:var(--card2);border:0.5px solid var(--border);border-radius:4px;padding:14px 16px;margin-bottom:10px;}
+.day-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.day-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--white);}
+.fit-badge{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:4px 11px;border-radius:2px;background:#222;color:var(--grey-light);border:0.5px solid var(--border);}
+.fit-badge.dialed{background:var(--green);color:#fff;border-color:var(--green);}
+.fit-badge.close{background:#2a5a3a;color:#9fe0b4;border-color:#2a5a3a;}
+.fit-badge.loose{background:rgba(201,154,46,.2);color:#e0b84a;border-color:#6a5420;}
+.fit-badge.poor{background:rgba(204,34,0,.2);color:#ff6644;border-color:#6a2010;}
+.pm-row{display:grid;grid-template-columns:72px 1fr 110px 92px 30px;gap:8px;align-items:center;padding:7px 0;border-bottom:0.5px solid #1c1c1c;}
+.pm-row:last-of-type{border-bottom:none;}
+.pm-slot{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);background:rgba(204,34,0,.12);border-radius:2px;padding:4px 6px;text-align:center;}
+.pm-row select{width:100%;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:13px;padding:7px 8px;outline:none;}
+.pm-row select:focus{border-color:var(--red);}
+.pm-serv{display:flex;align-items:center;gap:4px;}
+.pm-serv button{width:26px;height:28px;background:#222;border:0.5px solid var(--border);border-radius:3px;color:var(--grey-light);cursor:pointer;font-size:14px;line-height:1;}
+.pm-serv button:hover{color:#fff;border-color:var(--grey);}
+.pm-serv span{flex:1;text-align:center;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);}
+.pm-macros{font-size:11px;color:var(--grey);text-align:right;line-height:1.35;}
+.pm-macros b{display:block;font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);font-weight:normal;}
+.plan-adjust{background:rgba(204,34,0,.07);border:0.5px solid rgba(204,34,0,.22);border-radius:3px;padding:11px 12px;margin:10px 0;}
+.plan-adjust-head{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:7px;}
+.plan-adjust-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--grey-light);padding:3px 0;}
+.plan-adjust-row span{flex:1;}
+.plan-adjust-row b{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--grey);font-weight:500;}
+.plan-adjust-row i{color:var(--red);}
+.tot-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;}
+.tot-cell{background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;padding:8px 10px;}
+.tot-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);}
+.tot-val{font-family:'Bebas Neue',sans-serif;font-size:19px;color:var(--white);line-height:1.15;}
+.tot-gap{font-size:11px;margin-top:1px;}
+.tot-gap.on{color:var(--green-light);}
+.tot-gap.off{color:#e0b84a;}
+.pb-note{font-size:12px;color:var(--grey);margin-top:8px;line-height:1.5;}
+.req-card{background:var(--card2);border:0.5px solid var(--border);border-left:3px solid #c99a2e;border-radius:0 3px 3px 0;padding:12px 14px;margin-bottom:8px;}
+.req-head{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.req-name{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;letter-spacing:1px;color:var(--white);}
+.req-meta{font-size:12px;color:var(--grey);margin-top:2px;}
+.req-body{font-size:13px;color:var(--grey-light);margin-top:8px;line-height:1.5;}
+.confirm-bar{background:rgba(204,34,0,.1);border:0.5px solid rgba(204,34,0,.35);border-radius:3px;padding:11px 13px;margin-top:12px;}
+.confirm-text{font-size:13px;color:var(--grey-light);line-height:1.5;margin-bottom:9px;}
+
+/* --- recipe library ---------------------------------------------------- */
+.rec-toolbar{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;}
+.rec-row{display:grid;grid-template-columns:1fr 92px 58px 54px 54px 54px 104px;gap:8px;align-items:center;padding:8px 0;border-bottom:0.5px solid #1c1c1c;}
+.rec-row-head{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);}
+.rec-name{font-size:13px;color:var(--white);}
+.rec-src{font-size:11px;color:#5a5a5a;}
+.rec-type{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey-light);background:#222;border-radius:2px;padding:3px 7px;text-align:center;}
+.rec-num{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--grey-light);text-align:right;}
+.rec-warn{font-size:11px;color:#e0b84a;margin-top:2px;}
+.import-preview{background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;padding:12px;margin-top:12px;max-height:420px;overflow-y:auto;}
+.paste-area{width:100%;min-height:200px;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:13px;font-family:ui-monospace,Menlo,monospace;line-height:1.5;padding:11px 12px;outline:none;resize:vertical;}
+.paste-area:focus{border-color:var(--red);}
+.paste-help{background:var(--card2);border:0.5px solid var(--border);border-radius:3px;padding:12px 14px;margin-bottom:12px;}
+.paste-help p{font-size:12px;color:var(--grey-light);line-height:1.6;margin-bottom:8px;}
+.paste-help pre{background:#0d0d0d;border-radius:3px;padding:10px 12px;font-size:11px;line-height:1.5;color:var(--grey);overflow-x:auto;white-space:pre;font-family:ui-monospace,Menlo,monospace;}
+.rec-edit{width:100%;background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;color:var(--white);font-size:13px;padding:6px 7px;outline:none;}
+.rec-edit:focus{border-color:var(--red);}
 `;
 
 function timeAgo(ts) {
@@ -968,6 +1075,884 @@ function ContentTab() {
   );
 }
 
+/* ===================== Plan Builder (macros -> cookbook -> assigned plan) == */
+
+function DayEditor({ day, targets, lib, label, onChange, onShuffle }) {
+  const T = targets;
+  const fit = MB.fitLabel(day, T);
+  const tot = day.totalsAdjusted || day.totals;
+  const gap = day.gapAdjusted || day.gap;
+
+  function setServings(idx, val) {
+    const next = MB.cloneDay(day);
+    next.meals[idx].servings = Math.max(0.25, Math.round(val * 4) / 4);
+    MB.recomputeDay(next, T);
+    onChange(next);
+  }
+  function swapRecipe(idx, recipeId) {
+    const pool = MB.poolFor(lib, day.meals[idx].slot);
+    const found = pool.filter(r => String(r.id) === String(recipeId))[0];
+    if (!found) return;
+    const next = MB.cloneDay(day);
+    next.meals[idx].recipe = found;
+    MB.recomputeDay(next, T);
+    onChange(next);
+  }
+  function removeMeal(idx) {
+    if (day.meals.length <= 1) return;
+    const next = MB.cloneDay(day);
+    next.meals.splice(idx, 1);
+    MB.recomputeDay(next, T);
+    onChange(next);
+  }
+
+  return (
+    <div className="day-card">
+      <div className="day-head">
+        <div className="day-title">{label}</div>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          <div className={`fit-badge ${fit.key}`}>{fit.label}</div>
+          {onShuffle && <button className="btn-grey" onClick={onShuffle}><i className="ti ti-refresh"/> Shuffle</button>}
+        </div>
+      </div>
+
+      {day.meals.map((m, i) => {
+        const pool = MB.poolFor(lib, m.slot);
+        return (
+          <div key={i} className="pm-row">
+            <div className="pm-slot">{m.slot === 'snacks' ? 'snack' : m.slot}</div>
+            <select value={m.recipe.id} onChange={e=>swapRecipe(i, e.target.value)}>
+              {pool.filter(r => String(r.id) === String(m.recipe.id)).length === 0 && (
+                <option value={m.recipe.id}>{m.recipe.name} (not in library)</option>
+              )}
+              {pool.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+            <div className="pm-serv">
+              <button onClick={()=>setServings(i, m.servings - 0.25)}>−</button>
+              <span>{m.servings}</span>
+              <button onClick={()=>setServings(i, m.servings + 0.25)}>+</button>
+            </div>
+            <div className="pm-macros">
+              <b>{m.calories}</b>
+              {m.protein}P · {m.carbs}C · {m.fat}F
+            </div>
+            <button className="remove-btn" onClick={()=>removeMeal(i)} title="Remove"><i className="ti ti-x"/></button>
+          </div>
+        );
+      })}
+
+      {day.adjustments && day.adjustments.length > 0 && (
+        <div className="plan-adjust">
+          <div className="plan-adjust-head">Adjustments to land the macros</div>
+          {day.adjustments.map((a,i)=>(
+            <div key={i} className="plan-adjust-row">
+              <i className={`ti ${a.trim ? 'ti-minus' : 'ti-plus'}`}/>
+              <span>{a.text}</span>
+              <b>{a.calories > 0 ? '+' : ''}{a.calories} cal</b>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="tot-grid">
+        {[['Calories','calories',''],['Protein','protein','g'],['Carbs','carbs','g'],['Fat','fat','g']].map(([lab,key,u])=>{
+          const off = Math.abs(gap[key]) / (T[key] || 1) > 0.1;
+          return (
+            <div key={key} className="tot-cell">
+              <div className="tot-label">{lab}</div>
+              <div className="tot-val">{tot[key]}{u} <span style={{fontSize:12,color:'var(--grey)'}}>/ {T[key]}{u}</span></div>
+              <div className={`tot-gap ${off?'off':'on'}`}>{gap[key] > 0 ? '+' : ''}{gap[key]}{u} off target</div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="pb-note">{fit.hint}{MB.portionNote(day) ? ' ' + MB.portionNote(day) : ''}</div>
+    </div>
+  );
+}
+
+function PlanBuilderTab({ coachId }) {
+  const [clients, setClients] = useState([]);
+  const [selectedId, setSelectedId] = useState('');
+  const [lib, setLib] = useState(MB.RECIPES);
+  const [libNote, setLibNote] = useState('');
+  const [requests, setRequests] = useState([]);
+
+  const [sex, setSex] = useState('male');
+  const [age, setAge] = useState('');
+  const [heightFt, setHeightFt] = useState('');
+  const [heightIn, setHeightIn] = useState('');
+  const [weight, setWeight] = useState('');
+  const [activity, setActivity] = useState('1.55');
+  const [goal, setGoal] = useState('lean_bulk');
+  const [splitKey, setSplitKey] = useState('35_35_30');
+  const [cp, setCp] = useState(35);
+  const [cc, setCc] = useState(35);
+  const [cf, setCf] = useState(30);
+  const [mealCount, setMealCount] = useState(5);
+
+  const [targets, setTargets] = useState(null);
+  const [day, setDay] = useState(null);
+  const [week, setWeek] = useState(null);
+  const [seed, setSeed] = useState(1);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [saved, setSaved] = useState('');
+
+  useEffect(()=>{
+    loadClients();
+    loadRequests();
+    MB.loadLibrary(sb, (recipes, source, note)=>{
+      setLib(recipes);
+      setLibNote(source === 'supabase'
+        ? recipes.length + ' recipes in the library'
+        : MB.RECIPES.length + ' built-in Muscle Chef recipes (' + (note || 'recipes table not loaded') + ')');
+    });
+  },[]);
+
+  async function loadClients() {
+    const { data } = await sb.from('profiles').select('*').order('name');
+    setClients(data||[]);
+  }
+
+  async function loadRequests() {
+    const { data } = await sb.from('plan_requests').select('*').eq('status','pending').order('created_at',{ascending:false});
+    setRequests(data||[]);
+  }
+
+  function selectClient(uid) {
+    setSelectedId(uid);
+    setTargets(null); setDay(null); setWeek(null); setSaved(''); setError(''); setConfirming(false);
+    const c = clients.filter(x=>x.id===uid)[0];
+    if (!c) return;
+    setSex(c.sex || 'male');
+    setAge(c.age || '');
+    setWeight(c.current_weight || '');
+    if (c.height_in) { setHeightFt(Math.floor(c.height_in/12)); setHeightIn(Math.round(c.height_in%12)); }
+    else { setHeightFt(''); setHeightIn(''); }
+    setActivity(c.activity_factor ? String(c.activity_factor) : '1.55');
+    setGoal(c.goal || 'lean_bulk');
+    setSplitKey(c.split_key || '35_35_30');
+    if (c.split_protein_pct) { setCp(c.split_protein_pct); setCc(c.split_carbs_pct); setCf(c.split_fat_pct); }
+    setMealCount(c.meals_per_day || 5);
+  }
+
+  function runNumbers() {
+    const t = MB.calcTargets({
+      sex, age: parseFloat(age), weightLbs: parseFloat(weight),
+      heightIn: (parseFloat(heightFt)||0)*12 + (parseFloat(heightIn)||0),
+      activity, goal, splitKey,
+      customSplit: splitKey === 'custom' ? {p:Number(cp)/100, c:Number(cc)/100, f:Number(cf)/100} : null
+    });
+    if (!t.ok) { setError(t.errors[0]); setTargets(null); return; }
+    setError(''); setTargets(t); setDay(null); setWeek(null); setSaved('');
+  }
+
+  function targetObj(t) {
+    return {calories:t.calories, protein:t.protein, carbs:t.carbs, fat:t.fat};
+  }
+
+  function buildOne(nextSeed) {
+    if (!targets) return;
+    setBusy(true); setWeek(null); setSaved('');
+    const s = nextSeed == null ? seed : nextSeed; setSeed(s);
+    setTimeout(()=>{
+      const T = targetObj(targets);
+      const d = MB.buildDay(lib, T, {mealCount:Number(mealCount), seed:s});
+      if (d.error) { setError(d.error); setDay(null); setBusy(false); return; }
+      MB.closeGap(d, T);
+      setError(''); setDay(d); setBusy(false);
+    }, 20);
+  }
+
+  function buildWeek(nextSeed) {
+    if (!targets) return;
+    setBusy(true); setDay(null); setSaved('');
+    const s = nextSeed == null ? seed : nextSeed; setSeed(s);
+    setTimeout(()=>{
+      const T = targetObj(targets);
+      const w = MB.buildWeek(lib, T, {mealCount:Number(mealCount), seed:s, days:7});
+      if (w.error) { setError(w.error); setWeek(null); setBusy(false); return; }
+      setError(''); setWeek(w.days); setBusy(false);
+    }, 20);
+  }
+
+  // Pull a client-submitted plan into the builder so it can be edited, not
+  // just rubber-stamped.
+  function loadRequest(req) {
+    const t = req.targets || {};
+    setSelectedId(req.user_id);
+    if (t.input) {
+      setSex(t.input.sex || 'male');
+      setAge(t.input.age || '');
+      setWeight(t.input.weightLbs ? Math.round(t.input.weightLbs) : '');
+      if (t.input.heightIn) { setHeightFt(Math.floor(t.input.heightIn/12)); setHeightIn(Math.round(t.input.heightIn%12)); }
+      setActivity(String(t.input.activity || 1.55));
+      setGoal(t.input.goal || 'lean_bulk');
+    }
+    if (t.split) {
+      const matched = MB.SPLITS.filter(s=>s.key===t.split.key)[0];
+      setSplitKey(matched ? matched.key : 'custom');
+      setCp(t.split.p); setCc(t.split.c); setCf(t.split.f);
+    }
+    const built = {
+      ok: true, errors: [],
+      input: t.input || {}, bmr: t.bmr || {}, tdee: t.tdee || {},
+      split: t.split || {p:35,c:35,f:30,key:'35_35_30',label:'Brotherhood Standard'},
+      calories: t.calories, protein: t.protein, carbs: t.carbs, fat: t.fat,
+      perLb: {protein:0,carbs:0,fat:0}, fatPctCalories: 0, flags: t.flags || []
+    };
+    setTargets(built);
+    setWeek(null); setError(''); setSaved('');
+
+    const plan = req.plan || {};
+    if (plan.meals && plan.meals.length) {
+      setMealCount(plan.mealCount || plan.meals.length);
+      const T = {calories:t.calories, protein:t.protein, carbs:t.carbs, fat:t.fat};
+      const d = { meals: plan.meals.map(pm => {
+        const hit = lib.filter(r => String(r.id) === String(pm.recipe_id))[0];
+        // If the recipe has since been removed, keep the submitted macros so
+        // the plan still shows and can still be assigned.
+        const recipe = hit || {
+          id: pm.recipe_id, name: pm.name, meal_type: pm.slot, source: pm.source,
+          calories: pm.servings ? pm.calories/pm.servings : pm.calories,
+          protein: pm.servings ? pm.protein/pm.servings : pm.protein,
+          carbs: pm.servings ? pm.carbs/pm.servings : pm.carbs,
+          fat: pm.servings ? pm.fat/pm.servings : pm.fat,
+          fiber: 0, ingredients: [], instructions: []
+        };
+        return {slot: pm.slot, recipe, servings: pm.servings || 1,
+                calories: pm.calories, protein: pm.protein, carbs: pm.carbs, fat: pm.fat, fiber: 0};
+      }), adjustments: [] };
+      MB.recomputeDay(d, T);
+      setDay(d);
+    }
+    setConfirming(false);
+  }
+
+  async function declineRequest(req) {
+    await sb.from('plan_requests').update({status:'declined', reviewed_at:new Date().toISOString()}).eq('id',req.id);
+    loadRequests();
+  }
+
+  const clientName = (clients.filter(c=>c.id===selectedId)[0]||{}).name || '';
+
+  async function assign() {
+    if (!selectedId || !targets) return;
+    setBusy(true);
+    const rows = [];
+    if (week) {
+      week.forEach((d,i)=>{ MB.dayToPlanRows(d, selectedId, i).forEach(r=>rows.push(r)); });
+    } else if (day) {
+      MB.dayToPlanRows(day, selectedId, null).forEach(r=>rows.push(r));
+    }
+    if (!rows.length) { setBusy(false); return; }
+
+    // Replace whatever plan they are on, then write the new one.
+    const del = await sb.from('meal_plans').delete().eq('user_id', selectedId);
+    if (del.error) { setError('Could not clear the old plan: ' + del.error.message); setBusy(false); return; }
+
+    let ins = await sb.from('meal_plans').insert(rows);
+    if (ins.error) {
+      // Migration not run yet: retry with only the original columns.
+      const slim = rows.map(r=>({user_id:r.user_id, meal_time:r.meal_time, meal_name:r.meal_name,
+        protein:r.protein, carbs:r.carbs, fat:r.fat, calories:r.calories}));
+      ins = await sb.from('meal_plans').insert(slim);
+      if (ins.error) { setError('Could not save the plan: ' + ins.error.message); setBusy(false); return; }
+      setSaved('Plan assigned to ' + clientName + '. Heads up: the extra columns are missing, so servings and day-of-week were not stored. Run supabase-meal-engine.sql to keep them.');
+    } else {
+      setSaved('Plan assigned to ' + clientName + '.' + (week ? ' Seven days.' : ''));
+    }
+
+    // Save the targets on the profile and tell the client.
+    try {
+      await sb.from('profiles').update({
+        sex, age: parseFloat(age) || null,
+        height_in: (parseFloat(heightFt)||0)*12 + (parseFloat(heightIn)||0) || null,
+        activity_factor: parseFloat(activity), goal, split_key: targets.split.key,
+        split_protein_pct: targets.split.p, split_carbs_pct: targets.split.c, split_fat_pct: targets.split.f,
+        meals_per_day: Number(mealCount),
+        bmr_mifflin: targets.bmr.mifflin || null, bmr_harris: targets.bmr.harris || null,
+        tdee_average: targets.tdee.average || null,
+        target_calories: targets.calories, target_protein: targets.protein,
+        target_carbs: targets.carbs, target_fat: targets.fat,
+        macros_updated_at: new Date().toISOString()
+      }).eq('id', selectedId);
+    } catch (e) { /* pre-migration, skip */ }
+
+    try {
+      await sb.from('messages').insert({
+        sender_id: coachId, recipient_id: selectedId, from_coach: true,
+        content: 'Your new plan is live. ' + targets.calories + ' calories, ' +
+          targets.protein + 'g protein, ' + targets.carbs + 'g carbs, ' + targets.fat + 'g fat.' +
+          (week ? ' Seven days of meals, check the Meals tab each morning.' : ' Check the Meals tab.')
+      });
+    } catch (e) { /* message is a nicety, not the job */ }
+
+    const pending = requests.filter(r=>r.user_id===selectedId);
+    for (const r of pending) {
+      await sb.from('plan_requests').update({status:'approved', reviewed_at:new Date().toISOString()}).eq('id', r.id);
+    }
+    loadRequests();
+    setConfirming(false); setBusy(false);
+  }
+
+  const customSum = Number(cp)+Number(cc)+Number(cf);
+  const planRowCount = week ? week.reduce((n,d)=>n + d.meals.length + (d.adjustments||[]).length, 0)
+                            : day ? day.meals.length + (day.adjustments||[]).length : 0;
+
+  return (
+    <div>
+      <div className="section-title">Plan Builder</div>
+      <div className="section-sub">TDEE to macros to meals, then assign it</div>
+
+      {requests.length > 0 && (
+        <div className="panel">
+          <div className="panel-title">Waiting on you — {requests.length} plan {requests.length===1?'request':'requests'}</div>
+          {requests.map(req=>{
+            const who = (clients.filter(c=>c.id===req.user_id)[0]||{}).name || req.user_id.slice(0,8);
+            const t = req.targets||{}; const p = req.plan||{};
+            return (
+              <div key={req.id} className="req-card">
+                <div className="req-head">
+                  <div>
+                    <div className="req-name">{who}</div>
+                    <div className="req-meta">
+                      {t.calories} cal · {t.protein}P / {t.carbs}C / {t.fat}F
+                      {t.split ? ' · ' + t.split.p + '/' + t.split.c + '/' + t.split.f : ''}
+                      {' · '}{timeAgo(req.created_at)}
+                    </div>
+                  </div>
+                  <div style={{display:'flex',gap:6}}>
+                    <button className="btn-red" onClick={()=>loadRequest(req)}>Open in builder</button>
+                    <button className="btn-grey" onClick={()=>declineRequest(req)}>Dismiss</button>
+                  </div>
+                </div>
+                {p.meals && (
+                  <div className="req-body">
+                    {p.meals.map(m=>m.name + (m.servings!==1?' ×'+m.servings:'')).join(' · ')}
+                    {p.fit ? ' — fit: ' + p.fit : ''}
+                  </div>
+                )}
+                {(t.flags||[]).filter(f=>f.level==='stop').map((f,i)=>(
+                  <div key={i} className="flag stop"><div className="flag-title">{f.title}</div><div className="flag-body">{f.body}</div></div>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="panel">
+        <div className="panel-title">1. Client &amp; numbers</div>
+        <div className="form-row">
+          <div className="field">
+            <label>Client</label>
+            <select value={selectedId} onChange={e=>selectClient(e.target.value)}>
+              <option value="">-- Choose a client --</option>
+              {clients.map(c=><option key={c.id} value={c.id}>{c.name||c.email}</option>)}
+            </select>
+          </div>
+          <div className="field">
+            <label>Recipe library</label>
+            <div style={{background:'#0f0f0f',border:'0.5px solid var(--border)',borderRadius:3,fontSize:13,color:'var(--grey)',padding:'10px 12px'}}>{libNote||'loading…'}</div>
+          </div>
+        </div>
+
+        {selectedId && (
+          <div>
+            <div className="pb-row">
+              <div className="field">
+                <label>Sex</label>
+                <select value={sex} onChange={e=>setSex(e.target.value)}>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </div>
+              <div className="field"><label>Age</label><input type="number" value={age} onChange={e=>setAge(e.target.value)}/></div>
+              <div className="field"><label>Weight (lbs)</label><input type="number" value={weight} onChange={e=>setWeight(e.target.value)}/></div>
+              <div className="field">
+                <label>Height</label>
+                <div style={{display:'flex',gap:6}}>
+                  <input type="number" placeholder="ft" value={heightFt} onChange={e=>setHeightFt(e.target.value)}/>
+                  <input type="number" placeholder="in" value={heightIn} onChange={e=>setHeightIn(e.target.value)}/>
+                </div>
+              </div>
+            </div>
+            <div className="pb-row-2">
+              <div className="field">
+                <label>Activity</label>
+                <select value={activity} onChange={e=>setActivity(e.target.value)}>
+                  {MB.ACTIVITY.map(a=><option key={a.key} value={a.value}>{a.label} — {a.hint}</option>)}
+                </select>
+              </div>
+              <div className="field">
+                <label>Goal</label>
+                <select value={goal} onChange={e=>setGoal(e.target.value)}>
+                  {MB.GOALS.map(g=><option key={g.key} value={g.key}>{g.label} — {g.hint}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="field" style={{marginBottom:12}}>
+              <label>Macro split</label>
+              <div className="split-grid">
+                {MB.SPLITS.map(sp=>(
+                  <button key={sp.key} className={`split-btn${splitKey===sp.key?' active':''}`} onClick={()=>setSplitKey(sp.key)}>
+                    <span className="split-nums">{sp.key==='custom'?'Custom':`${Math.round(sp.p*100)}/${Math.round(sp.c*100)}/${Math.round(sp.f*100)}`}</span>
+                    <span className="split-name">{sp.key==='custom'?'Special cases':sp.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="split-hint">{MB.splitByKey(splitKey).hint}</div>
+            </div>
+            {splitKey === 'custom' && (
+              <div className="form-row three">
+                <div className="field"><label>Protein %</label><input type="number" value={cp} onChange={e=>setCp(e.target.value)}/></div>
+                <div className="field"><label>Carbs %</label><input type="number" value={cc} onChange={e=>setCc(e.target.value)}/></div>
+                <div className="field"><label>Fat % {customSum!==100 ? '(adds to '+customSum+'%)' : ''}</label><input type="number" value={cf} onChange={e=>setCf(e.target.value)}/></div>
+              </div>
+            )}
+            <div className="form-row">
+              <div className="field">
+                <label>Meals per day</label>
+                <select value={mealCount} onChange={e=>{setMealCount(e.target.value); setDay(null); setWeek(null);}}>
+                  <option value="3">3 — breakfast, lunch, dinner</option>
+                  <option value="4">4 — plus one snack</option>
+                  <option value="5">5 — plus two snacks</option>
+                  <option value="6">6 — plus three snacks</option>
+                </select>
+              </div>
+            </div>
+            <div className="btn-row">
+              <button className="btn-red" onClick={runNumbers}>Run Numbers</button>
+            </div>
+            {error && <div className="error-msg" style={{textAlign:'left',marginTop:10}}>{error}</div>}
+          </div>
+        )}
+      </div>
+
+      {targets && (
+        <div className="panel">
+          <div className="panel-title">2. Targets</div>
+          <div className="bp-hero">
+            <div className="bp-hero-num">{targets.calories}</div>
+            <div className="bp-hero-label">calories / day{targets.input.goalLabel ? ' — ' + targets.input.goalLabel : ''}</div>
+          </div>
+          <div className="macro-grid">
+            <div className="macro-card">
+              <div className="macro-num">{targets.protein}<span>g</span></div>
+              <div className="macro-label">Protein {targets.split.p}%</div>
+              <div className="macro-sub">{targets.perLb.protein ? targets.perLb.protein + ' g / lb' : ''}</div>
+            </div>
+            <div className="macro-card">
+              <div className="macro-num">{targets.carbs}<span>g</span></div>
+              <div className="macro-label">Carbs {targets.split.c}%</div>
+              <div className="macro-sub">{targets.perLb.carbs ? targets.perLb.carbs + ' g / lb' : ''}</div>
+            </div>
+            <div className="macro-card">
+              <div className="macro-num">{targets.fat}<span>g</span></div>
+              <div className="macro-label">Fat {targets.split.f}%</div>
+              <div className="macro-sub">{targets.perLb.fat ? targets.perLb.fat + ' g / lb' : ''}</div>
+            </div>
+          </div>
+          {targets.bmr.mifflin && (
+            <div className="formula-grid">
+              <div className="formula-cell"><span>Mifflin BMR</span><b>{targets.bmr.mifflin}</b></div>
+              <div className="formula-cell"><span>Harris BMR</span><b>{targets.bmr.harris}</b></div>
+              <div className="formula-cell"><span>Average BMR</span><b>{targets.bmr.average}</b></div>
+              <div className="formula-cell"><span>Maintenance</span><b>{targets.tdee.average}</b></div>
+            </div>
+          )}
+          {targets.flags.map((f,i)=>(
+            <div key={i} className={`flag ${f.level}`}>
+              <div className="flag-title">{f.title}</div>
+              <div className="flag-body">{f.body}</div>
+            </div>
+          ))}
+          <div className="btn-row">
+            <button className="btn-red" onClick={()=>buildOne(seed)} disabled={busy}>{busy?'Working…':'Build One Day'}</button>
+            <button className="btn-grey" onClick={()=>buildWeek(seed)} disabled={busy}>{busy?'Working…':'Build Seven Days'}</button>
+          </div>
+        </div>
+      )}
+
+      {day && targets && (
+        <div className="panel">
+          <div className="panel-title">3. The plan — edit anything before it goes out</div>
+          <DayEditor day={day} targets={targetObj(targets)} lib={lib} label="Daily template"
+            onChange={setDay} onShuffle={()=>buildOne(seed+1)}/>
+        </div>
+      )}
+
+      {week && targets && (
+        <div className="panel">
+          <div className="panel-title">3. The week — edit anything before it goes out</div>
+          {week.map((d,i)=>(
+            <DayEditor key={i} day={d} targets={targetObj(targets)} lib={lib}
+              label={['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][i]}
+              onChange={nd=>{ const w = week.slice(); w[i] = nd; setWeek(w); }}/>
+          ))}
+        </div>
+      )}
+
+      {(day || week) && targets && selectedId && (
+        <div className="panel">
+          <div className="panel-title">4. Assign</div>
+          {!confirming && (
+            <div className="btn-row">
+              <button className="btn-green" onClick={()=>setConfirming(true)} disabled={busy}>
+                Assign to {clientName}
+              </button>
+            </div>
+          )}
+          {confirming && (
+            <div className="confirm-bar">
+              <div className="confirm-text">
+                This wipes every meal row {clientName} currently has and replaces it with {planRowCount} new {planRowCount===1?'row':'rows'}
+                {week ? ' across seven days' : ''}. Their old plan is not recoverable.
+              </div>
+              <div className="btn-row" style={{marginTop:0}}>
+                <button className="btn-green" onClick={assign} disabled={busy}>{busy?'Saving…':'Yes, replace the plan'}</button>
+                <button className="btn-grey" onClick={()=>setConfirming(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+          {saved && <div className="success-msg">{saved}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ===================== Recipe Library (paste a cookbook in, no code) ======= */
+
+function recipeToRow(r) {
+  return {
+    name: r.name, meal_type: r.meal_type, source: r.source || null,
+    serves: r.serves || 1, serving_label: r.serving_label || null,
+    prep: r.prep || null, cook: r.cook || null, total_time: r.total_time || null,
+    calories: r.calories, protein: r.protein, carbs: r.carbs, fat: r.fat,
+    fiber: r.fiber == null ? null : r.fiber,
+    ingredients: r.ingredients || [], instructions: r.instructions || [],
+    tip: r.tip || null, note: r.note || null, tags: r.tags || [], active: r.active !== false
+  };
+}
+
+function RecipesTab() {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [tableOk, setTableOk] = useState(true);
+  const [status, setStatus] = useState('');
+  const [isErr, setIsErr] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const [filterType, setFilterType] = useState('');
+  const [filterSource, setFilterSource] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [edit, setEdit] = useState({});
+
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [pasteSource, setPasteSource] = useState('');
+  const [pasteType, setPasteType] = useState('dinner');
+  const [preview, setPreview] = useState(null);
+  const [warnings, setWarnings] = useState([]);
+
+  useEffect(()=>{ load(); },[]);
+
+  function note(msg, err) { setStatus(msg); setIsErr(!!err); }
+
+  async function load() {
+    setLoading(true);
+    const { data, error } = await sb.from('recipes').select('*').order('source').order('meal_type').order('name');
+    if (error) { setTableOk(false); setRows([]); }
+    else { setTableOk(true); setRows((data||[]).map(MB.normalizeRow)); }
+    setLoading(false);
+  }
+
+  const keyOf = r => (r.name||'').trim().toLowerCase() + '|' + (r.source||'').trim().toLowerCase();
+
+  // Copies the cookbooks that ship inside mb-nutrition.js into the table so
+  // they can be edited. Skips anything already there.
+  async function seedBuiltIn() {
+    setBusy(true);
+    const have = {}; rows.forEach(r=>{ have[keyOf(r)] = 1; });
+    const fresh = MB.RECIPES.filter(r=>!have[keyOf(r)]).map(recipeToRow);
+    if (!fresh.length) { note('Both cookbooks are already in the table. Nothing to add.'); setBusy(false); return; }
+    const { error } = await sb.from('recipes').insert(fresh);
+    if (error) note('Could not load the cookbooks: ' + error.message, true);
+    else note('Loaded ' + fresh.length + ' recipes into the table.');
+    setBusy(false); load();
+  }
+
+  function parsePaste() {
+    const res = MB.parseRecipes(pasteText, {source: pasteSource.trim() || null, meal_type: pasteType});
+    setWarnings(res.warnings);
+    setPreview(res.recipes.map(r=>Object.assign({}, r, {keep: true})));
+    if (!res.recipes.length) note('Nothing usable in that paste. See the format guide above.', true);
+    else note('Found ' + res.recipes.length + ' ' + (res.recipes.length===1?'recipe':'recipes') + '. Check them over, then save.');
+  }
+
+  function updatePreview(i, field, val) {
+    setPreview(p=>p.map((r,idx)=>idx===i ? Object.assign({}, r, {[field]: val}) : r));
+  }
+
+  async function savePreview() {
+    if (!pasteSource.trim()) { note('Give the cookbook a name first, so the recipes stay grouped.', true); return; }
+    setBusy(true);
+    const have = {}; rows.forEach(r=>{ have[keyOf(r)] = 1; });
+    const picked = preview.filter(r=>r.keep).map(r=>Object.assign({}, r, {
+      source: pasteSource.trim(),
+      calories: Number(r.calories), protein: Number(r.protein), carbs: Number(r.carbs), fat: Number(r.fat)
+    }));
+    const fresh = picked.filter(r=>!have[keyOf(r)]);
+    const dupes = picked.length - fresh.length;
+    if (!fresh.length) { note('All ' + picked.length + ' are already in the library.', true); setBusy(false); return; }
+    const { error } = await sb.from('recipes').insert(fresh.map(recipeToRow));
+    if (error) { note('Save failed: ' + error.message, true); setBusy(false); return; }
+    note('Saved ' + fresh.length + ' ' + (fresh.length===1?'recipe':'recipes') + (dupes ? ' (' + dupes + ' already existed and were skipped).' : '.'));
+    setPreview(null); setPasteText(''); setWarnings([]); setBusy(false); load();
+  }
+
+  async function toggleActive(r) {
+    await sb.from('recipes').update({active: !r.active}).eq('id', r.id);
+    load();
+  }
+
+  function startEdit(r) {
+    setEditId(r.id);
+    setEdit({name:r.name, meal_type:r.meal_type, calories:r.calories, protein:r.protein, carbs:r.carbs, fat:r.fat});
+  }
+
+  async function saveEdit() {
+    const payload = {
+      name: String(edit.name||'').trim(), meal_type: edit.meal_type,
+      calories: Number(edit.calories), protein: Number(edit.protein),
+      carbs: Number(edit.carbs), fat: Number(edit.fat)
+    };
+    if (!payload.name || !(payload.calories > 0)) { note('A recipe needs a name and calories above zero.', true); return; }
+    const { error } = await sb.from('recipes').update(payload).eq('id', editId);
+    if (error) note('Could not save: ' + error.message, true); else note('Saved.');
+    setEditId(null); load();
+  }
+
+  const sources = Array.from(new Set(rows.map(r=>r.source).filter(Boolean)));
+  const shown = rows.filter(r=>(!filterType || r.meal_type===filterType) && (!filterSource || r.source===filterSource));
+  const counts = {}; rows.filter(r=>r.active).forEach(r=>{ counts[r.meal_type] = (counts[r.meal_type]||0)+1; });
+  const builtInMissing = MB.RECIPES.filter(r=>!rows.some(x=>keyOf(x)===keyOf(r))).length;
+
+  return (
+    <div>
+      <div className="section-title">Recipe Library</div>
+      <div className="section-sub">What the plan builder is allowed to pick from</div>
+
+      {!loading && !tableOk && (
+        <div className="panel">
+          <div className="flag warn">
+            <div className="flag-title">The recipes table is not set up yet</div>
+            <div className="flag-body">
+              The plan builder still works. It is running on the {MB.RECIPES.length} recipes from The Muscle Chef and The Long Game
+              that ship inside the app. To add more cookbooks or edit a recipe, run <b>supabase-meal-engine.sql</b> once in
+              your Supabase SQL editor, then reload this page.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tableOk && (
+        <div className="panel">
+          <div className="panel-title">Library — {rows.filter(r=>r.active).length} active recipes</div>
+          <div className="tot-grid" style={{marginTop:0,marginBottom:14}}>
+            {['breakfast','lunch','dinner','snacks'].map(t=>(
+              <div key={t} className="tot-cell">
+                <div className="tot-label">{t}</div>
+                <div className="tot-val">{counts[t]||0}</div>
+              </div>
+            ))}
+          </div>
+
+          {builtInMissing > 0 && (
+            <div className="flag note" style={{marginBottom:12}}>
+              <div className="flag-title">{rows.length === 0 ? 'The table is empty' : builtInMissing + ' built-in recipes are not in the table'}</div>
+              <div className="flag-body">
+                {rows.length === 0
+                  ? 'Until it has recipes, the plan builder uses the copy of both cookbooks that ships inside the app. Load them here so you can edit them and add more.'
+                  : 'Load them to bring the table up to the full set from The Muscle Chef and The Long Game.'}
+              </div>
+              <div className="btn-row" style={{marginTop:10}}>
+                <button className="btn-red" onClick={seedBuiltIn} disabled={busy}>{busy?'Loading…':'Load both cookbooks (' + builtInMissing + ')'}</button>
+              </div>
+            </div>
+          )}
+
+          <div className="rec-toolbar">
+            <div className="field" style={{minWidth:150}}>
+              <label>Meal</label>
+              <select value={filterType} onChange={e=>setFilterType(e.target.value)}>
+                <option value="">All meals</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snacks">Snacks</option>
+              </select>
+            </div>
+            <div className="field" style={{minWidth:190}}>
+              <label>Cookbook</label>
+              <select value={filterSource} onChange={e=>setFilterSource(e.target.value)}>
+                <option value="">All cookbooks</option>
+                {sources.map(s=><option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <button className="btn-grey" onClick={()=>setPasteOpen(!pasteOpen)}>
+              <i className="ti ti-plus"/> {pasteOpen ? 'Close importer' : 'Add recipes'}
+            </button>
+          </div>
+
+          <div className={`ce-status${isErr?' err':''}`}>{status}</div>
+
+          {pasteOpen && (
+            <div style={{marginBottom:16}}>
+              <div className="paste-help">
+                <p>Paste straight out of the manuscript, one recipe or a whole chapter. Both of your book layouts are read automatically.
+                   For anything typed by hand, this is all a recipe needs:</p>
+                <pre>{`Blackened Chicken Rice Bowl
+Type: lunch
+Serves: 2
+Calories: 480
+Protein: 46g
+Carbs: 44g
+Fat: 12g
+
+Ingredients
+- 12 oz chicken breast
+- 2 cups cooked jasmine rice
+
+Instructions
+1. Season and sear the chicken.
+2. Slice and serve over rice.
+---
+Next Recipe Name
+...`}</pre>
+                <p style={{marginBottom:0}}>Macros are per serving. Separate hand-typed recipes with a line of three dashes.</p>
+              </div>
+              <div className="form-row">
+                <div className="field">
+                  <label>Cookbook name</label>
+                  <input placeholder="e.g. The Long Game" value={pasteSource} onChange={e=>setPasteSource(e.target.value)}/>
+                </div>
+                <div className="field">
+                  <label>Meal type, if the paste does not say</label>
+                  <select value={pasteType} onChange={e=>setPasteType(e.target.value)}>
+                    <option value="breakfast">Breakfast</option>
+                    <option value="lunch">Lunch</option>
+                    <option value="dinner">Dinner</option>
+                    <option value="snacks">Snacks</option>
+                  </select>
+                </div>
+              </div>
+              <textarea className="paste-area" placeholder="Paste recipes here…" value={pasteText}
+                onChange={e=>{ setPasteText(e.target.value); setPreview(null); }}/>
+              <div className="btn-row">
+                <button className="btn-red" onClick={parsePaste} disabled={!pasteText.trim()}>Read recipes</button>
+              </div>
+
+              {warnings.map((w,i)=><div key={i} className="rec-warn" style={{marginTop:8}}>{w}</div>)}
+
+              {preview && preview.length > 0 && (
+                <div className="import-preview">
+                  <div className="rec-row rec-row-head">
+                    <span>Recipe</span><span>Meal</span><span style={{textAlign:'right'}}>Cal</span>
+                    <span style={{textAlign:'right'}}>P</span><span style={{textAlign:'right'}}>C</span>
+                    <span style={{textAlign:'right'}}>F</span><span style={{textAlign:'right'}}>Keep</span>
+                  </div>
+                  {preview.map((r,i)=>{
+                    const chk = MB.macroCheck({calories:Number(r.calories), protein:Number(r.protein), carbs:Number(r.carbs), fat:Number(r.fat)});
+                    return (
+                      <div key={i} className="rec-row">
+                        <div>
+                          <div className="rec-name">{r.name}</div>
+                          <div className="rec-src">{r.ingredients.length} ingredients · {r.instructions.length} steps</div>
+                          {!chk.ok && <div className="rec-warn">{chk.note}</div>}
+                        </div>
+                        <select className="rec-type" style={{border:'none'}} value={r.meal_type} onChange={e=>updatePreview(i,'meal_type',e.target.value)}>
+                          <option value="breakfast">breakfast</option>
+                          <option value="lunch">lunch</option>
+                          <option value="dinner">dinner</option>
+                          <option value="snacks">snacks</option>
+                        </select>
+                        <div className="rec-num">{r.calories}</div>
+                        <div className="rec-num">{r.protein}</div>
+                        <div className="rec-num">{r.carbs}</div>
+                        <div className="rec-num">{r.fat}</div>
+                        <div style={{textAlign:'right'}}>
+                          <input type="checkbox" checked={r.keep} onChange={e=>updatePreview(i,'keep',e.target.checked)}
+                            style={{accentColor:'var(--red)',width:16,height:16}}/>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="btn-row">
+                    <button className="btn-green" onClick={savePreview} disabled={busy}>
+                      {busy ? 'Saving…' : 'Save ' + preview.filter(r=>r.keep).length + ' to the library'}
+                    </button>
+                    <button className="btn-grey" onClick={()=>{ setPreview(null); setWarnings([]); }}>Discard</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {loading && <div className="loading">Loading recipes...</div>}
+          {!loading && rows.length > 0 && (
+            <div>
+              <div className="rec-row rec-row-head">
+                <span>Recipe</span><span>Meal</span><span style={{textAlign:'right'}}>Cal</span>
+                <span style={{textAlign:'right'}}>P</span><span style={{textAlign:'right'}}>C</span>
+                <span style={{textAlign:'right'}}>F</span><span></span>
+              </div>
+              {shown.map(r=> editId === r.id ? (
+                <div key={r.id} className="rec-row" style={{gridTemplateColumns:'1fr 92px 58px 54px 54px 54px 110px'}}>
+                  <input className="rec-edit" value={edit.name} onChange={e=>setEdit({...edit,name:e.target.value})}/>
+                  <select className="rec-edit" value={edit.meal_type} onChange={e=>setEdit({...edit,meal_type:e.target.value})}>
+                    <option value="breakfast">breakfast</option><option value="lunch">lunch</option>
+                    <option value="dinner">dinner</option><option value="snacks">snacks</option>
+                  </select>
+                  <input className="rec-edit" type="number" value={edit.calories} onChange={e=>setEdit({...edit,calories:e.target.value})}/>
+                  <input className="rec-edit" type="number" value={edit.protein} onChange={e=>setEdit({...edit,protein:e.target.value})}/>
+                  <input className="rec-edit" type="number" value={edit.carbs} onChange={e=>setEdit({...edit,carbs:e.target.value})}/>
+                  <input className="rec-edit" type="number" value={edit.fat} onChange={e=>setEdit({...edit,fat:e.target.value})}/>
+                  <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
+                    <button className="ce-copy" onClick={saveEdit}>Save</button>
+                    <button className="ce-copy" onClick={()=>setEditId(null)}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <div key={r.id} className="rec-row" style={{opacity: r.active ? 1 : 0.45}}>
+                  <div>
+                    <div className="rec-name">{r.name}</div>
+                    <div className="rec-src">{r.source || 'No cookbook'}{(r.tags||[]).filter(t=>/\d+\/\d+\/\d+/.test(t)).map(t=>' · built for ' + t)}{!r.active ? ' · turned off' : ''}</div>
+                  </div>
+                  <div className="rec-type">{r.meal_type}</div>
+                  <div className="rec-num">{r.calories}</div>
+                  <div className="rec-num">{r.protein}</div>
+                  <div className="rec-num">{r.carbs}</div>
+                  <div className="rec-num">{r.fat}</div>
+                  <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
+                    <button className="ce-copy" onClick={()=>startEdit(r)}>Edit</button>
+                    <button className="ce-copy" onClick={()=>toggleActive(r)}>{r.active ? 'Off' : 'On'}</button>
+                  </div>
+                </div>
+              ))}
+              {shown.length === 0 && <div className="empty">Nothing matches that filter.</div>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -994,7 +1979,9 @@ function App() {
 
   const tabs = [
     {key:'clients',label:'Clients'},
+    {key:'builder',label:'Plan Builder'},
     {key:'meals',label:'Meal Plans'},
+    {key:'recipes',label:'Recipes'},
     {key:'messages',label:'Messages'},
     {key:'checkins',label:'Check-ins'},
     {key:'measurements',label:'Measurements'},
@@ -1018,7 +2005,9 @@ function App() {
       </div>
       <div className="main">
         {tab==='clients' && <ClientsTab coachId={session.user.id}/>}
+        {tab==='builder' && <PlanBuilderTab coachId={session.user.id}/>}
         {tab==='meals' && <MealsTab coachId={session.user.id}/>}
+        {tab==='recipes' && <RecipesTab/>}
         {tab==='messages' && <MessagesTab coachId={session.user.id}/>}
         {tab==='checkins' && <CheckinsTab/>}
         {tab==='measurements' && <MeasurementsTab/>}

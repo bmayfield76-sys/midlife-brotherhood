@@ -11,6 +11,7 @@
 <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.js"></script>
+<script src="mb-nutrition.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--black:#0a0a0a;--dark:#111111;--card:#181818;--card2:#1f1f1f;--red:#cc2200;--red-light:#e63300;--grey:#888;--grey-light:#aaa;--white:#f0f0f0;--border:#2a2a2a;}
@@ -163,6 +164,103 @@ const styles = `
 .gender-toggle{display:flex;gap:0;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;margin-top:5px;}
 .gender-btn{flex:1;background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px;cursor:pointer;transition:all 0.2s;}
 .gender-btn.active{background:var(--red);color:#fff;}
+.stats-row.four{grid-template-columns:repeat(4,1fr);gap:6px;}
+.stats-row.four .stat-card{padding:12px 6px;}
+.stats-row.four .stat-num{font-size:22px;}
+.meal-wrap{margin-bottom:8px;}
+.meal-wrap .meal-item{margin-bottom:0;}
+.meal-wrap.open .meal-item{border-bottom-left-radius:0;border-bottom-right-radius:0;border-color:var(--red);}
+.meal-item.has-recipe{cursor:pointer;transition:border-color 0.2s;}
+.meal-item.has-recipe:hover{border-color:var(--grey);}
+.meal-open-hint{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);margin-top:5px;}
+.meal-chevron{color:var(--grey);font-size:16px;transition:transform 0.2s;flex-shrink:0;}
+.meal-chevron.open{transform:rotate(180deg);}
+.recipe-detail{background:#131313;border:0.5px solid var(--red);border-top:none;border-radius:0 0 4px 4px;padding:14px 16px 16px;}
+.recipe-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--grey);margin-bottom:12px;}
+.recipe-toggle{display:flex;border:0.5px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:12px;}
+.recipe-toggle button{flex:1;background:none;border:none;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 6px;cursor:pointer;}
+.recipe-toggle button.active{background:var(--red);color:#fff;}
+.recipe-head{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);margin:14px 0 8px;}
+.recipe-list{margin:0;padding-left:18px;}
+.recipe-list li{font-size:14px;color:var(--grey-light);line-height:1.5;margin-bottom:5px;}
+.recipe-list.steps li{margin-bottom:9px;padding-left:3px;}
+.recipe-list li::marker{color:var(--red);}
+.recipe-fine{font-size:12px;color:#6a6a6a;line-height:1.5;margin-top:8px;}
+.recipe-tip{background:rgba(204,34,0,0.08);border-left:2px solid var(--red);border-radius:0 3px 3px 0;font-size:13px;color:var(--grey-light);line-height:1.55;padding:10px 12px;margin-top:14px;}
+.recipe-tip-head{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
+.meal-note{font-size:12px;color:#5a5a5a;margin-top:3px;font-style:italic;}
+.target-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--card);border:0.5px solid var(--border);border-radius:4px;padding:12px;margin-bottom:12px;}
+.target-cell{text-align:center;}
+.target-label{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-bottom:5px;}
+.target-bar{height:4px;background:#222;border-radius:2px;overflow:hidden;}
+.target-fill{height:100%;background:var(--red);}
+.target-val{font-size:11px;color:var(--grey-light);margin-top:4px;}
+.tool-section-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--grey);margin:22px 0 8px;}
+.tool-error{background:rgba(204,34,0,0.1);border:0.5px solid rgba(204,34,0,0.35);border-radius:3px;color:#ff6644;font-size:13px;padding:9px 11px;margin-top:10px;line-height:1.4;}
+.split-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:5px;}
+.split-btn{background:var(--card2);border:0.5px solid var(--border);border-radius:3px;padding:9px 8px;cursor:pointer;text-align:left;transition:all 0.15s;}
+.split-btn:hover{border-color:var(--grey);}
+.split-btn.active{background:var(--red);border-color:var(--red);}
+.split-nums{display:block;font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:var(--white);line-height:1.1;}
+.split-name{display:block;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-top:1px;}
+.split-btn.active .split-name{color:rgba(255,255,255,0.85);}
+.split-hint{font-size:12px;color:var(--grey);margin-top:7px;line-height:1.4;}
+.bp-result{margin-top:14px;}
+.bp-hero{background:#0f0f0f;border:0.5px solid var(--border);border-left:3px solid var(--red);border-radius:0 3px 3px 0;padding:14px 16px;}
+.bp-hero-num{font-family:'Bebas Neue',sans-serif;font-size:50px;color:var(--red);line-height:1;}
+.bp-hero-label{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--grey);margin-top:2px;}
+.macro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;}
+.macro-card{background:var(--card2);border-radius:3px;padding:11px 10px;text-align:center;}
+.macro-num{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--white);line-height:1;}
+.macro-num span{font-size:15px;color:var(--grey);}
+.macro-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);margin-top:3px;}
+.macro-sub{font-size:11px;color:#666;margin-top:2px;}
+.formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px;}
+.formula-cell{background:#141414;border-radius:3px;padding:8px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.formula-cell span{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);}
+.formula-cell b{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--white);font-weight:normal;}
+.flag{border-radius:3px;padding:10px 12px;margin-top:8px;border-left:3px solid var(--grey);background:#141414;}
+.flag.stop{border-left-color:var(--red);background:rgba(204,34,0,0.09);}
+.flag.warn{border-left-color:#c99a2e;background:rgba(201,154,46,0.08);}
+.flag.note{border-left-color:#4a90d9;background:rgba(74,144,217,0.07);}
+.flag-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);}
+.flag-body{font-size:13px;color:var(--grey-light);line-height:1.5;margin-top:4px;}
+.bp-step{margin-top:16px;border-top:0.5px solid var(--border);padding-top:12px;}
+.bp-step-head{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--red);}
+.lib-note{background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;font-size:12px;color:var(--grey);padding:10px 11px;}
+.plan-day{margin-top:14px;border-top:0.5px solid var(--border);padding-top:12px;}
+.plan-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.fit-badge{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:4px 11px;border-radius:2px;background:var(--card2);color:var(--grey-light);border:0.5px solid var(--border);}
+.fit-badge.dialed{background:#1a7a3a;color:#fff;border-color:#1a7a3a;}
+.fit-badge.close{background:#2a5a3a;color:#9fe0b4;border-color:#2a5a3a;}
+.fit-badge.loose{background:rgba(201,154,46,0.2);color:#e0b84a;border-color:#6a5420;}
+.fit-badge.poor{background:rgba(204,34,0,0.2);color:#ff6644;border-color:#6a2010;}
+.shuffle-btn{background:none;border:0.5px solid var(--border);border-radius:3px;color:var(--grey);font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:5px 11px;cursor:pointer;}
+.shuffle-btn:hover{color:var(--white);border-color:var(--grey);}
+.plan-meal{background:var(--card2);border-radius:3px;padding:11px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:11px;}
+.plan-slot{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--red);background:rgba(204,34,0,0.12);border-radius:2px;padding:4px 7px;min-width:62px;text-align:center;flex-shrink:0;}
+.plan-meal-body{flex:1;min-width:0;}
+.plan-name{font-size:14px;color:var(--white);line-height:1.3;}
+.plan-macros{font-size:12px;color:var(--grey);margin-top:3px;}
+.plan-serv{display:inline-block;background:#262626;border-radius:2px;color:var(--grey-light);font-size:11px;padding:1px 6px;margin-right:6px;}
+.plan-source{font-size:11px;color:#5a5a5a;margin-top:2px;font-style:italic;}
+.plan-cals{font-family:'Bebas Neue',sans-serif;font-size:21px;color:var(--white);line-height:1;flex-shrink:0;}
+.plan-adjust{background:rgba(204,34,0,0.07);border:0.5px solid rgba(204,34,0,0.22);border-radius:3px;padding:11px 12px;margin:8px 0;}
+.plan-adjust-head{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:7px;}
+.plan-adjust-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--grey-light);padding:3px 0;}
+.plan-adjust-row span{flex:1;}
+.plan-adjust-row b{font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--grey);font-weight:500;}
+.plan-adjust-row i{color:var(--red);font-size:13px;}
+.plan-totals{background:#0f0f0f;border:0.5px solid var(--border);border-radius:3px;padding:4px 12px 8px;margin-top:8px;}
+.plan-total-row{display:grid;grid-template-columns:1fr 70px 70px 70px;gap:6px;padding:5px 0;align-items:center;border-bottom:0.5px solid #1c1c1c;}
+.plan-total-row:last-child{border-bottom:none;}
+.plan-total-row span{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);}
+.plan-total-row b{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--white);font-weight:normal;text-align:right;}
+.plan-total-row.head b{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--grey);}
+.plan-total-row b.dim{color:var(--grey);}
+.plan-total-row b.on{color:#22a84e;}
+.plan-total-row b.off{color:#e0b84a;}
+.fit-hint{font-size:12px;color:var(--grey);margin-top:7px;line-height:1.4;}
 `;
 
 const MOTIVATIONS = [
@@ -180,6 +278,22 @@ const MOTIVATIONS = [
 
 function getToday() {
   return new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
+
+// Pulls the body fields out of a calculator's state and normalizes to lbs and
+// inches. In metric mode the "ft" field holds centimeters.
+function readBody({gender, age, weight, heightFt, heightIn, unit}) {
+  const imperial = unit === 'imperial';
+  const w = parseFloat(weight);
+  const heightInches = imperial
+    ? (parseFloat(heightFt) || 0) * 12 + (parseFloat(heightIn) || 0)
+    : MB.cmToIn(parseFloat(heightFt) || 0);
+  return {
+    sex: gender,
+    age: parseFloat(age),
+    weightLbs: imperial ? w : MB.kgToLbs(w),
+    heightIn: heightInches
+  };
 }
 
 function timeAgo(ts) {
@@ -367,42 +481,184 @@ function PackPage({ user, profile }) {
   );
 }
 
-function MealsPage({ user }) {
+// '7am' / '6:30pm' / 'anytime' -> minutes since midnight, for sorting.
+function mealTimeMinutes(str) {
+  if (!str) return 9000;
+  const m = String(str).trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+  if (!m) return 9500;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  const ap = m[3];
+  if (ap === 'pm' && h < 12) h += 12;
+  if (ap === 'am' && h === 12) h = 0;
+  return h * 60 + min;
+}
+
+// The recipe behind a meal row: ingredients scaled to the client's portion,
+// the steps, and the coach's tip.
+function RecipeDetail({ match }) {
+  const { recipe, servings, factor } = match;
+  const scalable = Math.abs(factor - 1) > 0.001;
+  const [mode, setMode] = useState('mine');           // 'mine' | 'full'
+  const f = mode === 'mine' ? factor : 1;
+  const makes = Number(recipe.serves) || 1;
+  const time = recipe.total_time || recipe.prep;
+
+  return (
+    <div className="recipe-detail">
+      <div className="recipe-meta">
+        {time && <span><i className="ti ti-clock"/> {/\//.test(time) ? 'Prep / cook ' : ''}{time}</span>}
+        <span>Your portion: {servings} {servings === 1 ? 'serving' : 'servings'}</span>
+        {recipe.source && <span>{recipe.source}</span>}
+      </div>
+
+      {scalable && (
+        <div className="recipe-toggle">
+          <button className={mode==='mine'?'active':''} onClick={()=>setMode('mine')}>My portion</button>
+          <button className={mode==='full'?'active':''} onClick={()=>setMode('full')}>
+            Recipe as written{makes > 1 ? ' · makes ' + makes : ''}
+          </button>
+        </div>
+      )}
+
+      <div className="recipe-head">Ingredients</div>
+      <ul className="recipe-list">
+        {recipe.ingredients.map((ing,i)=><li key={i}>{MB.scaleIngredient(ing, f)}</li>)}
+      </ul>
+      {scalable && mode === 'mine' && (
+        <div className="recipe-fine">
+          Amounts are scaled to your portion and rounded. The steps below still read as the book wrote them.
+          {makes > 1 && servings < makes ? ' Cooking for the week? Switch to the full recipe and portion it out.' : ''}
+        </div>
+      )}
+
+      {recipe.instructions && recipe.instructions.length > 0 && (
+        <>
+          <div className="recipe-head">Instructions</div>
+          <ol className="recipe-list steps">
+            {recipe.instructions.map((st,i)=><li key={i}>{st}</li>)}
+          </ol>
+        </>
+      )}
+
+      {recipe.tip && (
+        <div className="recipe-tip">
+          <div className="recipe-tip-head">Coach's tip</div>
+          {recipe.tip}
+        </div>
+      )}
+      {recipe.note && <div className="recipe-fine">{recipe.note}</div>}
+    </div>
+  );
+}
+
+function MealsPage({ user, profile }) {
   const [meals, setMeals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lib, setLib] = useState(MB.RECIPES);
+  const [openId, setOpenId] = useState(null);
 
-  useEffect(()=>{ loadMeals(); },[]);
+  useEffect(()=>{
+    loadMeals();
+    MB.loadLibrary(sb, recipes => setLib(recipes));
+  },[]);
 
   async function loadMeals() {
-    const { data } = await sb.from('meal_plans').select('*').eq('user_id',user.id).order('meal_time');
+    const { data } = await sb.from('meal_plans').select('*').eq('user_id',user.id);
     setMeals(data||[]); setLoading(false);
   }
 
-  const totals = meals.reduce((acc,m)=>({cal:acc.cal+(m.calories||0),pro:acc.pro+(m.protein||0),carb:acc.carb+(m.carbs||0)}),{cal:0,pro:0,carb:0});
+  // Monday = 0, matching day_of_week in the plan rows.
+  const todayIdx = (new Date().getDay() + 6) % 7;
+
+  // A row with no day_of_week belongs to every day. Rows are sorted by the
+  // clock, with coach adjustments ('anytime') falling to the bottom.
+  const today = meals
+    .filter(m => m.day_of_week == null || m.day_of_week === todayIdx)
+    .sort((a,b) => {
+      const d = mealTimeMinutes(a.meal_time) - mealTimeMinutes(b.meal_time);
+      return d !== 0 ? d : (a.sort_order||0) - (b.sort_order||0);
+    });
+
+  const isAdjustment = m => (m.notes === 'coach adjustment') || String(m.meal_time||'').toLowerCase() === 'anytime';
+  const realMeals = today.filter(m => !isAdjustment(m));
+  const adjustments = today.filter(isAdjustment);
+
+  const totals = today.reduce((a,m)=>({
+    cal: a.cal + (m.calories||0), pro: a.pro + (m.protein||0),
+    carb: a.carb + (m.carbs||0), fat: a.fat + (m.fat||0)
+  }),{cal:0,pro:0,carb:0,fat:0});
+
+  const hasTargets = profile && profile.target_calories > 0;
+  const pct = (got, target) => target ? Math.round((got/target)*100) : null;
+  const weekdays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  const isWeekPlan = meals.some(m => m.day_of_week != null);
 
   return (
     <div>
       <div className="greeting-day">Your Plan</div>
-      <div className="greeting-name">Today's Meals</div>
-      {meals.length>0 && (
-        <div className="stats-row" style={{marginBottom:16}}>
+      <div className="greeting-name">{isWeekPlan ? weekdays[todayIdx] + "'s Meals" : "Today's Meals"}</div>
+
+      {today.length>0 && (
+        <div className="stats-row four" style={{marginBottom:16}}>
           <div className="stat-card"><div className="stat-num">{totals.cal}</div><div className="stat-label">Calories</div></div>
           <div className="stat-card"><div className="stat-num">{totals.pro}g</div><div className="stat-label">Protein</div></div>
           <div className="stat-card"><div className="stat-num">{totals.carb}g</div><div className="stat-label">Carbs</div></div>
+          <div className="stat-card"><div className="stat-num">{totals.fat}g</div><div className="stat-label">Fat</div></div>
         </div>
       )}
-      {loading && <div className="loading">Loading your plan...</div>}
-      {!loading && meals.length===0 && <div className="loading">No meal plan assigned yet. Coach Billy will add yours soon.</div>}
-      {meals.map(m=>(
-        <div key={m.id} className="meal-item">
-          <div className="meal-time">{m.meal_time}</div>
-          <div style={{flex:1}}>
-            <div className="meal-name">{m.meal_name}</div>
-            <div className="meal-macros">{m.protein}g protein · {m.carbs}g carbs · {m.fat}g fat</div>
-          </div>
-          <div className="meal-cals">{m.calories}</div>
+
+      {today.length>0 && hasTargets && (
+        <div className="target-strip">
+          {[['Cal', totals.cal, profile.target_calories],
+            ['Protein', totals.pro, profile.target_protein],
+            ['Carbs', totals.carb, profile.target_carbs],
+            ['Fat', totals.fat, profile.target_fat]].map(([label,got,target])=>(
+            <div key={label} className="target-cell">
+              <div className="target-label">{label}</div>
+              <div className="target-bar"><div className="target-fill" style={{width:Math.min(100, pct(got,target)||0)+'%'}}/></div>
+              <div className="target-val">{got} / {target||'--'}</div>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+
+      {loading && <div className="loading">Loading your plan...</div>}
+      {!loading && today.length===0 && <div className="loading">No meal plan assigned yet. Coach Billy will add yours soon.</div>}
+
+      {realMeals.map(m=>{
+        const match = MB.recipeForPlanRow(lib, m);
+        const open = openId === m.id;
+        return (
+          <div key={m.id} className={`meal-wrap${open?' open':''}`}>
+            <div className={`meal-item${match?' has-recipe':''}`} onClick={()=>match && setOpenId(open ? null : m.id)}>
+              <div className="meal-time">{m.meal_time}</div>
+              <div style={{flex:1}}>
+                <div className="meal-name">{m.meal_name}</div>
+                <div className="meal-macros">{m.protein}g protein · {m.carbs}g carbs · {m.fat}g fat</div>
+                {m.notes && m.notes !== 'coach adjustment' && <div className="meal-note">{m.notes}</div>}
+                {match && <div className="meal-open-hint">{open ? 'Hide recipe' : 'Tap for the recipe'}</div>}
+              </div>
+              <div className="meal-cals">{m.calories}</div>
+              {match && <i className={`ti ti-chevron-down meal-chevron${open?' open':''}`}/>}
+            </div>
+            {open && match && <RecipeDetail match={match}/>}
+          </div>
+        );
+      })}
+
+      {adjustments.length>0 && (
+        <div className="plan-adjust" style={{marginTop:12}}>
+          <div className="plan-adjust-head">Coach adjustments</div>
+          {adjustments.map(m=>(
+            <div key={m.id} className="plan-adjust-row">
+              <i className={`ti ${(m.calories||0) < 0 ? 'ti-minus' : 'ti-plus'}`}/>
+              <span>{m.meal_name}</span>
+              <b>{(m.calories||0) > 0 ? '+' : ''}{m.calories} cal</b>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -719,8 +975,8 @@ function ResultBox({ result, label, breakdown, onSendCoach, sent }) {
   );
 }
 
-function ToolCard({ icon, title, subtitle, children }) {
-  const [open, setOpen] = useState(false);
+function ToolCard({ icon, title, subtitle, children, defaultOpen }) {
+  const [open, setOpen] = useState(!!defaultOpen);
   return (
     <div className="tool-card">
       <div className="tool-header" onClick={()=>setOpen(o=>!o)}>
@@ -753,17 +1009,394 @@ function ToolsPage({ user, profile }) {
     return true;
   }
 
+  // ---------------------------------------------------------------- Macro Blueprint
+  // The headline tool: runs Mifflin-St Jeor and Harris-Benedict, averages them,
+  // applies the goal and the split, then builds a day out of the cookbook.
+  function MacroBlueprint() {
+    const [gender, setGender] = useState(profile?.sex || 'male');
+    const [unit, setUnit] = useState('imperial');
+    const [age, setAge] = useState(profile?.age || '');
+    const [weight, setWeight] = useState(profile?.current_weight || '');
+    const [heightFt, setHeightFt] = useState(profile?.height_in ? Math.floor(profile.height_in / 12) : '');
+    const [heightIn, setHeightIn] = useState(profile?.height_in ? Math.round(profile.height_in % 12) : '');
+    const [activity, setActivity] = useState(profile?.activity_factor ? String(profile.activity_factor) : '1.55');
+    const [goal, setGoal] = useState(profile?.goal || 'lean_bulk');
+    const [splitKey, setSplitKey] = useState(profile?.split_key || '35_35_30');
+    const [cp, setCp] = useState(profile?.split_protein_pct || 35);
+    const [cc, setCc] = useState(profile?.split_carbs_pct || 35);
+    const [cf, setCf] = useState(profile?.split_fat_pct || 30);
+    const [mealCount, setMealCount] = useState(profile?.meals_per_day || 5);
+
+    const [targets, setTargets] = useState(null);
+    const [error, setError] = useState('');
+    const [lib, setLib] = useState(MB.RECIPES);
+    const [libNote, setLibNote] = useState('');
+    const [day, setDay] = useState(null);
+    const [seed, setSeed] = useState(1);
+    const [building, setBuilding] = useState(false);
+    const [sent, setSent] = useState(false);
+    const [sending, setSending] = useState(false);
+
+    useEffect(() => {
+      MB.loadLibrary(sb, (recipes, source, note) => {
+        setLib(recipes);
+        setLibNote(source === 'supabase'
+          ? recipes.length + ' recipes in the library'
+          : MB.RECIPES.length + ' recipes from your two cookbooks');
+      });
+    }, []);
+
+    const customSum = Number(cp) + Number(cc) + Number(cf);
+
+    function calc() {
+      const body = readBody({gender, age, weight, heightFt, heightIn, unit});
+      const t = MB.calcTargets({
+        sex: body.sex, age: body.age, weightLbs: body.weightLbs, heightIn: body.heightIn,
+        activity, goal, splitKey,
+        customSplit: splitKey === 'custom' ? {p: Number(cp) / 100, c: Number(cc) / 100, f: Number(cf) / 100} : null
+      });
+      if (!t.ok) { setError(t.errors[0]); setTargets(null); setDay(null); return; }
+      setError(''); setTargets(t); setDay(null); setSent(false);
+      saveToProfile(t);
+    }
+
+    // Best effort. If the SQL migration has not been run yet this quietly does
+    // nothing and the calculator still works.
+    async function saveToProfile(t) {
+      try {
+        await sb.from('profiles').update({
+          sex: t.input.sex, age: t.input.age, height_in: t.input.heightIn,
+          activity_factor: t.input.activity, goal: t.input.goal,
+          split_key: t.split.key, split_protein_pct: t.split.p,
+          split_carbs_pct: t.split.c, split_fat_pct: t.split.f,
+          meals_per_day: mealCount,
+          bmr_mifflin: t.bmr.mifflin, bmr_harris: t.bmr.harris, tdee_average: t.tdee.average,
+          target_calories: t.calories, target_protein: t.protein,
+          target_carbs: t.carbs, target_fat: t.fat,
+          macros_updated_at: new Date().toISOString()
+        }).eq('id', user.id);
+      } catch (e) { /* migration not run yet, no harm */ }
+    }
+
+    function build(nextSeed) {
+      if (!targets) return;
+      setBuilding(true);
+      const s = nextSeed == null ? seed : nextSeed;
+      setSeed(s);
+      // Let the button repaint before the solver runs.
+      setTimeout(() => {
+        const T = {calories: targets.calories, protein: targets.protein, carbs: targets.carbs, fat: targets.fat};
+        const d = MB.buildDay(lib, T, {mealCount: Number(mealCount), seed: s});
+        if (d.error) { setError(d.error); setDay(null); setBuilding(false); return; }
+        MB.closeGap(d, T);
+        setError(''); setDay(d); setSent(false); setBuilding(false);
+      }, 20);
+    }
+
+    async function sendPlan() {
+      if (!targets || !day) return;
+      setSending(true);
+      const T = {calories: targets.calories, protein: targets.protein, carbs: targets.carbs, fat: targets.fat};
+      const fit = MB.fitLabel(day, T);
+      const payloadPlan = {
+        mealCount: Number(mealCount),
+        fit: fit.key,
+        meals: day.meals.map(m => ({
+          slot: m.slot, recipe_id: m.recipe.id, name: m.recipe.name, source: m.recipe.source,
+          servings: m.servings, calories: m.calories, protein: m.protein, carbs: m.carbs, fat: m.fat
+        })),
+        adjustments: day.adjustments,
+        totals: day.totalsAdjusted || day.totals,
+        gap: day.gapAdjusted || day.gap
+      };
+      try {
+        await sb.from('plan_requests').insert({
+          user_id: user.id,
+          targets: {
+            calories: targets.calories, protein: targets.protein, carbs: targets.carbs, fat: targets.fat,
+            split: targets.split, input: targets.input, bmr: targets.bmr, tdee: targets.tdee,
+            flags: targets.flags
+          },
+          plan: payloadPlan
+        });
+      } catch (e) { /* table may not exist yet; the message below still gets through */ }
+
+      const lines = [
+        'MACRO BLUEPRINT + DAY PLAN',
+        '',
+        'Stats: ' + gender + ', ' + targets.input.age + ', ' + Math.round(targets.input.weightLbs) + ' lbs, ' +
+          Math.floor(targets.input.heightIn / 12) + "'" + Math.round(targets.input.heightIn % 12) + '"',
+        'Activity: ' + targets.input.activityLabel + ' | Goal: ' + targets.input.goalLabel,
+        'BMR Mifflin ' + targets.bmr.mifflin + ' | BMR Harris ' + targets.bmr.harris + ' | average ' + targets.bmr.average,
+        'TDEE average: ' + targets.tdee.average,
+        '',
+        'TARGET: ' + targets.calories + ' cal | ' + targets.protein + 'P / ' + targets.carbs + 'C / ' +
+          targets.fat + 'F (' + targets.split.p + '/' + targets.split.c + '/' + targets.split.f + ')',
+        '',
+        'DAY PLAN (' + fit.label + ')'
+      ];
+      day.meals.forEach(m => lines.push('  ' + m.slot + ': ' + m.recipe.name +
+        (m.servings !== 1 ? ' x' + m.servings : '') + ' - ' + m.calories + ' cal, ' +
+        m.protein + 'P/' + m.carbs + 'C/' + m.fat + 'F'));
+      if (day.adjustments.length) {
+        lines.push('', 'Adjustments to hit the numbers:');
+        day.adjustments.forEach(a => lines.push('  - ' + a.text));
+      }
+      const tot = day.totalsAdjusted || day.totals;
+      lines.push('', 'Day total: ' + tot.calories + ' cal | ' + tot.protein + 'P / ' + tot.carbs + 'C / ' + tot.fat + 'F');
+      if (targets.flags.length) {
+        lines.push('', 'Flags:');
+        targets.flags.forEach(f => lines.push('  [' + f.level + '] ' + f.title));
+      }
+      lines.push('', 'Sent for your approval.');
+
+      await sendToCoach(lines.join('\n'));
+      setSending(false); setSent(true);
+    }
+
+    const T = targets ? {calories: targets.calories, protein: targets.protein, carbs: targets.carbs, fat: targets.fat} : null;
+    const fit = day && T ? MB.fitLabel(day, T) : null;
+    const tot = day ? (day.totalsAdjusted || day.totals) : null;
+    const gap = day ? (day.gapAdjusted || day.gap) : null;
+
+    return (
+      <ToolCard icon="ti-target-arrow" title="Macro Blueprint" subtitle="Both formulas averaged, then a day built from the cookbook" defaultOpen>
+        <div className="tool-field">
+          <label>Gender</label>
+          <div className="gender-toggle">
+            <button className={`gender-btn${gender==='male'?' active':''}`} onClick={()=>setGender('male')}>Male</button>
+            <button className={`gender-btn${gender==='female'?' active':''}`} onClick={()=>setGender('female')}>Female</button>
+          </div>
+        </div>
+        <div className="tool-grid">
+          <div className="tool-field">
+            <label>Unit System</label>
+            <select value={unit} onChange={e=>setUnit(e.target.value)}>
+              <option value="imperial">Imperial (lbs/ft)</option>
+              <option value="metric">Metric (kg/cm)</option>
+            </select>
+          </div>
+          <div className="tool-field">
+            <label>Age</label>
+            <input type="number" placeholder="45" value={age} onChange={e=>setAge(e.target.value)}/>
+          </div>
+        </div>
+        <div className="tool-grid">
+          <div className="tool-field">
+            <label>Weight ({unit==='imperial'?'lbs':'kg'})</label>
+            <input type="number" placeholder="0" value={weight} onChange={e=>setWeight(e.target.value)}/>
+          </div>
+          {unit === 'imperial' ? (
+            <>
+              <div className="tool-field">
+                <label>Height (ft)</label>
+                <input type="number" placeholder="5" value={heightFt} onChange={e=>setHeightFt(e.target.value)}/>
+              </div>
+              <div className="tool-field">
+                <label>Height (in)</label>
+                <input type="number" placeholder="10" value={heightIn} onChange={e=>setHeightIn(e.target.value)}/>
+              </div>
+            </>
+          ) : (
+            <div className="tool-field">
+              <label>Height (cm)</label>
+              <input type="number" placeholder="178" value={heightFt} onChange={e=>setHeightFt(e.target.value)}/>
+            </div>
+          )}
+        </div>
+        <div className="tool-field">
+          <label>Activity Level</label>
+          <select value={activity} onChange={e=>setActivity(e.target.value)}>
+            {MB.ACTIVITY.map(a=><option key={a.key} value={a.value}>{a.label} — {a.hint}</option>)}
+          </select>
+        </div>
+        <div className="tool-field">
+          <label>Goal</label>
+          <select value={goal} onChange={e=>setGoal(e.target.value)}>
+            {MB.GOALS.map(g=><option key={g.key} value={g.key}>{g.label} — {g.hint}</option>)}
+          </select>
+        </div>
+
+        <div className="tool-field">
+          <label>Macro Split</label>
+          <div className="split-grid">
+            {MB.SPLITS.map(sp=>(
+              <button key={sp.key} className={`split-btn${splitKey===sp.key?' active':''}`} onClick={()=>setSplitKey(sp.key)}>
+                <span className="split-nums">{sp.key==='custom'?'Custom':`${Math.round(sp.p*100)}/${Math.round(sp.c*100)}/${Math.round(sp.f*100)}`}</span>
+                <span className="split-name">{sp.key==='custom'?'Special cases':sp.label}</span>
+              </button>
+            ))}
+          </div>
+          <div className="split-hint">{MB.splitByKey(splitKey).hint}</div>
+        </div>
+
+        {splitKey === 'custom' && (
+          <div className="tool-grid-3">
+            <div className="tool-field">
+              <label>Protein %</label>
+              <input type="number" value={cp} onChange={e=>setCp(e.target.value)}/>
+            </div>
+            <div className="tool-field">
+              <label>Carbs %</label>
+              <input type="number" value={cc} onChange={e=>setCc(e.target.value)}/>
+            </div>
+            <div className="tool-field">
+              <label>Fat %</label>
+              <input type="number" value={cf} onChange={e=>setCf(e.target.value)}/>
+            </div>
+          </div>
+        )}
+        {splitKey === 'custom' && customSum !== 100 && (
+          <div className="split-hint" style={{color:'var(--red-light)'}}>
+            Adds up to {customSum}%. It will be scaled to 100 — set it on the nose if you want exact numbers.
+          </div>
+        )}
+
+        <button className="calc-btn" onClick={calc}>Run My Numbers</button>
+        {error && <div className="tool-error">{error}</div>}
+
+        {targets && (
+          <div className="bp-result">
+            <div className="bp-hero">
+              <div className="bp-hero-num">{targets.calories}</div>
+              <div className="bp-hero-label">calories / day — {targets.input.goalLabel}</div>
+            </div>
+
+            <div className="macro-grid">
+              <div className="macro-card">
+                <div className="macro-num">{targets.protein}<span>g</span></div>
+                <div className="macro-label">Protein {targets.split.p}%</div>
+                <div className="macro-sub">{targets.perLb.protein} g / lb</div>
+              </div>
+              <div className="macro-card">
+                <div className="macro-num">{targets.carbs}<span>g</span></div>
+                <div className="macro-label">Carbs {targets.split.c}%</div>
+                <div className="macro-sub">{targets.perLb.carbs} g / lb</div>
+              </div>
+              <div className="macro-card">
+                <div className="macro-num">{targets.fat}<span>g</span></div>
+                <div className="macro-label">Fat {targets.split.f}%</div>
+                <div className="macro-sub">{targets.perLb.fat} g / lb</div>
+              </div>
+            </div>
+
+            <div className="formula-grid">
+              <div className="formula-cell"><span>Mifflin-St Jeor BMR</span><b>{targets.bmr.mifflin}</b></div>
+              <div className="formula-cell"><span>Harris-Benedict BMR</span><b>{targets.bmr.harris}</b></div>
+              <div className="formula-cell"><span>Average BMR</span><b>{targets.bmr.average}</b></div>
+              <div className="formula-cell"><span>Maintenance (TDEE)</span><b>{targets.tdee.average}</b></div>
+            </div>
+
+            {targets.flags.map((f,i)=>(
+              <div key={i} className={`flag ${f.level}`}>
+                <div className="flag-title">
+                  <i className={`ti ${f.level==='stop'?'ti-alert-triangle':f.level==='warn'?'ti-alert-circle':'ti-info-circle'}`}/> {f.title}
+                </div>
+                <div className="flag-body">{f.body}</div>
+              </div>
+            ))}
+
+            <div className="bp-step">
+              <div className="bp-step-head">Step 2 — build the day</div>
+              <div className="tool-grid">
+                <div className="tool-field">
+                  <label>Meals per day</label>
+                  <select value={mealCount} onChange={e=>{setMealCount(e.target.value); setDay(null);}}>
+                    <option value="3">3 — breakfast, lunch, dinner</option>
+                    <option value="4">4 — plus one snack</option>
+                    <option value="5">5 — plus two snacks</option>
+                    <option value="6">6 — plus three snacks</option>
+                  </select>
+                </div>
+                <div className="tool-field">
+                  <label>Library</label>
+                  <div className="lib-note">{libNote || 'loading…'}</div>
+                </div>
+              </div>
+              <button className="calc-btn" onClick={()=>build(seed)} disabled={building}>
+                {building ? 'Working…' : day ? 'Rebuild' : 'Build My Day'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {day && T && (
+          <div className="plan-day">
+            <div className="plan-head">
+              <div className={`fit-badge ${fit.key}`}>{fit.label}</div>
+              <button className="shuffle-btn" onClick={()=>build(seed+1)} disabled={building}>
+                <i className="ti ti-refresh"/> Different day
+              </button>
+            </div>
+
+            {day.meals.map((m,i)=>(
+              <div key={i} className="plan-meal">
+                <div className="plan-slot">{m.slot === 'snacks' ? 'snack' : m.slot}</div>
+                <div className="plan-meal-body">
+                  <div className="plan-name">{m.recipe.name}</div>
+                  <div className="plan-macros">
+                    {m.servings !== 1 && <span className="plan-serv">{m.servings} servings</span>}
+                    {m.protein}g protein · {m.carbs}g carbs · {m.fat}g fat
+                  </div>
+                  {m.recipe.source && <div className="plan-source">{m.recipe.source}</div>}
+                </div>
+                <div className="plan-cals">{m.calories}</div>
+              </div>
+            ))}
+
+            {day.adjustments.length > 0 && (
+              <div className="plan-adjust">
+                <div className="plan-adjust-head">Coach adjustments to land the macros</div>
+                {day.adjustments.map((a,i)=>(
+                  <div key={i} className="plan-adjust-row">
+                    <i className={`ti ${a.trim ? 'ti-minus' : 'ti-plus'}`}/>
+                    <span>{a.text}</span>
+                    <b>{a.calories > 0 ? '+' : ''}{a.calories} cal</b>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="plan-totals">
+              <div className="plan-total-row head"><span></span><b>Plan</b><b>Target</b><b>Off by</b></div>
+              {[['Calories','calories',''],['Protein','protein','g'],['Carbs','carbs','g'],['Fat','fat','g']].map(([label,key,u])=>(
+                <div key={key} className="plan-total-row">
+                  <span>{label}</span>
+                  <b>{tot[key]}{u}</b>
+                  <b className="dim">{T[key]}{u}</b>
+                  <b className={Math.abs(gap[key]) / (T[key]||1) > 0.1 ? 'off' : 'on'}>
+                    {gap[key] > 0 ? '+' : ''}{gap[key]}{u}
+                  </b>
+                </div>
+              ))}
+            </div>
+            <div className="fit-hint">{fit.hint}</div>
+            {MB.portionNote(day) && <div className="fit-hint">{MB.portionNote(day)}</div>}
+
+            <button className="send-coach-btn" onClick={sendPlan} disabled={sending || sent}>
+              <i className="ti ti-send"/> {sending ? 'Sending…' : sent ? 'Sent to Coach Billy' : 'Send to Coach Billy for Approval'}
+            </button>
+            {sent && <div className="sent-msg">Coach Billy has it. Nothing changes on your Meals tab until he approves it.</div>}
+          </div>
+        )}
+      </ToolCard>
+    );
+  }
+
   // Quick Method
   function QuickCalc() {
     const [weight, setWeight] = useState('');
     const [unit, setUnit] = useState('lbs');
     const [result, setResult] = useState(null);
     const [sent, setSent] = useState(false);
+    const [error, setError] = useState('');
 
     function calc() {
       const w = parseFloat(weight);
-      if (!w) return;
-      const lbs = unit === 'kg' ? w * 2.20462 : w;
+      if (!(w > 0)) { setError('Enter your weight.'); setResult(null); return; }
+      const lbs = unit === 'kg' ? MB.kgToLbs(w) : w;
+      if (lbs < 80 || lbs > 700) { setError('That weight is outside anything real. Check the unit.'); setResult(null); return; }
+      setError('');
       const tdee = Math.round(lbs * 15);
       setResult(tdee); setSent(false);
     }
@@ -790,6 +1423,7 @@ function ToolsPage({ user, profile }) {
           </div>
         </div>
         <button className="calc-btn" onClick={calc}>Calculate</button>
+        {error && <div className="tool-error">{error}</div>}
         {result && (
           <ResultBox
             result={result}
@@ -819,24 +1453,17 @@ function ToolsPage({ user, profile }) {
     const [activity, setActivity] = useState('1.375');
     const [result, setResult] = useState(null);
     const [sent, setSent] = useState(false);
+    const [error, setError] = useState('');
 
     function calc() {
-      const w = parseFloat(weight);
-      const a = parseFloat(age);
-      const act = parseFloat(activity);
-      if (!w || !a) return;
-      let weightKg = unit === 'lbs' ? w * 0.453592 : w;
-      let heightCm = unit === 'imperial'
-        ? (parseFloat(heightFt)||0) * 30.48 + (parseFloat(heightIn)||0) * 2.54
-        : parseFloat(weight); // handled below
-      if (unit === 'metric') {
-        heightCm = parseFloat(heightFt); // using heightFt field for cm in metric
-      }
-      let bmr = gender === 'male'
-        ? (10 * weightKg) + (6.25 * heightCm) - (5 * a) + 5
-        : (10 * weightKg) + (6.25 * heightCm) - (5 * a) - 161;
-      const tdee = Math.round(bmr * act);
-      setResult({bmr: Math.round(bmr), tdee}); setSent(false);
+      const body = readBody({gender, age, weight, heightFt, heightIn, unit});
+      const errs = MB.validateInput(body);
+      if (errs.length) { setError(errs[0]); setResult(null); return; }
+      setError('');
+      const bmr = MB.bmrMifflin({sex: body.sex, age: body.age,
+        weightKg: MB.lbsToKg(body.weightLbs), heightCm: MB.inToCm(body.heightIn)});
+      setResult({bmr: Math.round(bmr), tdee: Math.round(bmr * parseFloat(activity))});
+      setSent(false);
     }
 
     async function send() {
@@ -902,6 +1529,7 @@ function ToolsPage({ user, profile }) {
           </select>
         </div>
         <button className="calc-btn" onClick={calc}>Calculate</button>
+        {error && <div className="tool-error">{error}</div>}
         {result && (
           <ResultBox
             result={result.tdee}
@@ -931,27 +1559,23 @@ function ToolsPage({ user, profile }) {
     const [activity, setActivity] = useState('1.375');
     const [result, setResult] = useState(null);
     const [sent, setSent] = useState(false);
+    const [error, setError] = useState('');
 
     function calc() {
-      const w = parseFloat(weight);
-      const a = parseFloat(age);
+      const body = readBody({gender, age, weight, heightFt, heightIn, unit});
+      const errs = MB.validateInput(body);
+      if (errs.length) { setError(errs[0]); setResult(null); return; }
+      setError('');
       const act = parseFloat(activity);
-      if (!w || !a) return;
-      let weightKg = unit === 'lbs' ? w * 0.453592 : w;
-      let heightCm = unit === 'imperial'
-        ? (parseFloat(heightFt)||0) * 30.48 + (parseFloat(heightIn)||0) * 2.54
-        : parseFloat(heightFt);
-      // Harris-Benedict revised (Roza & Shizgal 1984)
-      let bmr = gender === 'male'
-        ? 88.362 + (13.397 * weightKg) + (4.799 * heightCm) - (5.677 * a)
-        : 447.593 + (9.247 * weightKg) + (3.098 * heightCm) - (4.330 * a);
-      // Mifflin for comparison
-      let mifflin = gender === 'male'
-        ? (10 * weightKg) + (6.25 * heightCm) - (5 * a) + 5
-        : (10 * weightKg) + (6.25 * heightCm) - (5 * a) - 161;
-      const tdee = Math.round(bmr * act);
-      const mifflinTdee = Math.round(mifflin * act);
-      setResult({bmr: Math.round(bmr), tdee, mifflinTdee}); setSent(false);
+      const base = {sex: body.sex, age: body.age,
+        weightKg: MB.lbsToKg(body.weightLbs), heightCm: MB.inToCm(body.heightIn)};
+      const bmr = MB.bmrHarris(base), mifflin = MB.bmrMifflin(base);
+      setResult({
+        bmr: Math.round(bmr),
+        tdee: Math.round(bmr * act),
+        mifflinTdee: Math.round(mifflin * act)
+      });
+      setSent(false);
     }
 
     async function send() {
@@ -1016,6 +1640,7 @@ function ToolsPage({ user, profile }) {
           </select>
         </div>
         <button className="calc-btn" onClick={calc}>Calculate</button>
+        {error && <div className="tool-error">{error}</div>}
         {result && (
           <ResultBox
             result={result.tdee}
@@ -1047,29 +1672,35 @@ function ToolsPage({ user, profile }) {
     const [activity, setActivity] = useState('1.375');
     const [result, setResult] = useState(null);
     const [sent, setSent] = useState(false);
+    const [error, setError] = useState('');
 
     function calc() {
       const w = parseFloat(weight);
       const wa = parseFloat(waist);
       const ne = parseFloat(neck);
       const hi = parseFloat(hips);
-      if (!w || !wa || !ne) return;
-
-      let weightLbs = unit === 'kg' ? w * 2.20462 : w;
-      let waistCm = unit === 'imperial' ? wa * 2.54 : wa;
-      let neckCm = unit === 'imperial' ? ne * 2.54 : ne;
-      let hipsCm = unit === 'imperial' ? (hi||0) * 2.54 : (hi||0);
-      let heightCm = unit === 'imperial'
-        ? (parseFloat(heightFt)||0) * 30.48 + (parseFloat(heightIn)||0) * 2.54
-        : parseFloat(heightFt);
-
-      let bf;
-      if (gender === 'male') {
-        bf = 86.010 * Math.log10(waistCm - neckCm) - 70.041 * Math.log10(heightCm) + 36.76;
-      } else {
-        bf = 163.205 * Math.log10(waistCm + hipsCm - neckCm) - 97.684 * Math.log10(heightCm) - 78.387;
+      if (!(w > 0) || !(wa > 0) || !(ne > 0)) {
+        setError('Weight, waist, and neck are all required.'); setResult(null); return;
       }
-      bf = Math.max(3, Math.min(60, parseFloat(bf.toFixed(1))));
+      if (gender === 'female' && !(hi > 0)) {
+        setError('Hips are required for the female formula.'); setResult(null); return;
+      }
+
+      const imperial = unit === 'imperial';
+      const weightLbs = imperial ? w : MB.kgToLbs(w);
+      const waistCm = imperial ? MB.inToCm(wa) : wa;
+      const neckCm  = imperial ? MB.inToCm(ne) : ne;
+      const hipsCm  = imperial ? MB.inToCm(hi||0) : (hi||0);
+      // In metric mode the ft field holds centimeters.
+      const heightCm = imperial
+        ? MB.inToCm((parseFloat(heightFt)||0) * 12 + (parseFloat(heightIn)||0))
+        : (parseFloat(heightFt)||0);
+
+      if (heightCm < 120 || heightCm > 230) { setError('Enter a real height first.'); setResult(null); return; }
+      if (waistCm <= neckCm) { setError('Waist has to be bigger than neck \u2014 check your tape.'); setResult(null); return; }
+      const bf = MB.navyBodyFat({sex: gender, waistCm, neckCm, hipsCm, heightCm});
+      if (bf == null) { setError('Those measurements do not compute. Measure again.'); setResult(null); return; }
+      setError('');
 
       const weightKg = weightLbs * 0.453592;
       const lbm = weightKg * (1 - bf / 100);
@@ -1153,6 +1784,7 @@ function ToolsPage({ user, profile }) {
           </select>
         </div>
         <button className="calc-btn" onClick={calc}>Calculate</button>
+        {error && <div className="tool-error">{error}</div>}
         {result && (
           <ResultBox
             result={result.tdee}
@@ -1180,12 +1812,15 @@ function ToolsPage({ user, profile }) {
     const [activity, setActivity] = useState('1.375');
     const [result, setResult] = useState(null);
     const [sent, setSent] = useState(false);
+    const [error, setError] = useState('');
 
     function calc() {
       const l = parseFloat(lbm);
-      if (!l) return;
-      const lbmKg = unit === 'lbs' ? l * 0.453592 : l;
-      const bmr = 370 + (21.6 * lbmKg);
+      if (!(l > 0)) { setError('Enter your lean body mass.'); setResult(null); return; }
+      const lbmKg = unit === 'lbs' ? MB.lbsToKg(l) : l;
+      if (lbmKg < 25 || lbmKg > 150) { setError('That lean mass is outside anything real. Check the unit.'); setResult(null); return; }
+      setError('');
+      const bmr = MB.bmrKatch(lbmKg);
       const tdee = Math.round(bmr * parseFloat(activity));
       setResult({bmr: Math.round(bmr), tdee}); setSent(false);
     }
@@ -1225,6 +1860,7 @@ function ToolsPage({ user, profile }) {
           </select>
         </div>
         <button className="calc-btn" onClick={calc}>Calculate</button>
+        {error && <div className="tool-error">{error}</div>}
         {result && (
           <ResultBox
             result={result.tdee}
@@ -1246,7 +1882,9 @@ function ToolsPage({ user, profile }) {
   return (
     <div>
       <div className="greeting-day">Coach Billy's Toolkit</div>
-      <div className="greeting-name">TDEE Calculators</div>
+      <div className="greeting-name">Macros &amp; Meal Plans</div>
+      <MacroBlueprint/>
+      <div className="tool-section-label">Single formulas, if you want to see the math</div>
       <QuickCalc/>
       <MifflinCalc/>
       <HarrisCalc/>
@@ -1319,7 +1957,7 @@ function App() {
       <div className="main-content">
         {tab==='home' && <HomePage user={user} profile={profile}/>}
         {tab==='pack' && <PackPage user={user} profile={profile}/>}
-        {tab==='meals' && <MealsPage user={user}/>}
+        {tab==='meals' && <MealsPage user={user} profile={profile}/>}
         {tab==='progress' && <ProgressPage user={user} profile={profile}/>}
         {tab==='tools' && <ToolsPage user={user} profile={profile}/>}
         {tab==='coach' && <CoachPage user={user} profile={profile}/>}
