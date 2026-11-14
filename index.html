@@ -167,6 +167,23 @@ const styles = `
 .stats-row.four{grid-template-columns:repeat(4,1fr);gap:6px;}
 .stats-row.four .stat-card{padding:12px 6px;}
 .stats-row.four .stat-num{font-size:22px;}
+.kl-intro{font-size:13px;color:var(--grey-light);line-height:1.55;margin-top:12px;}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px;}
+.food-chip{background:rgba(204,34,0,0.14);border:0.5px solid var(--red);border-radius:20px;color:var(--white);font-size:12px;padding:5px 11px;cursor:pointer;transition:all 0.15s;}
+.food-chip.off{background:none;border-color:var(--border);color:#5a5a5a;text-decoration:line-through;}
+.kl-line{font-size:12px;color:var(--grey);line-height:1.5;margin-top:4px;}
+.macro-num.kl-veg{font-size:22px;padding-top:4px;}
+.kl-banner{background:var(--card);border:0.5px solid var(--border);border-left:3px solid var(--red);border-radius:0 4px 4px 0;font-size:13px;color:var(--grey-light);line-height:1.55;padding:12px 14px;margin-bottom:14px;}
+.kl-banner-head{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
+.verdict{border-radius:3px;padding:14px 16px;margin-top:12px;border-left:3px solid var(--grey);background:#141414;}
+.verdict.excellent,.verdict.ok{border-left-color:#22a84e;background:rgba(34,168,78,0.08);}
+.verdict.sparingly{border-left-color:#c99a2e;background:rgba(201,154,46,0.08);}
+.verdict.avoid{border-left-color:var(--red);background:rgba(204,34,0,0.09);}
+.verdict-pct{font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--white);line-height:1;}
+.verdict-pct span{font-size:16px;color:var(--grey);}
+.verdict-label{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--white);margin-top:4px;}
+.verdict-meaning{font-size:13px;color:var(--grey-light);line-height:1.5;margin-top:4px;}
+.verdict-math{font-size:11px;color:#6a6a6a;margin-top:6px;}
 .meal-wrap{margin-bottom:8px;}
 .meal-wrap .meal-item{margin-bottom:0;}
 .meal-wrap.open .meal-item{border-bottom-left-radius:0;border-bottom-right-radius:0;border-color:var(--red);}
@@ -580,8 +597,14 @@ function MealsPage({ user, profile }) {
       return d !== 0 ? d : (a.sort_order||0) - (b.sort_order||0);
     });
 
-  const isAdjustment = m => (m.notes === 'coach adjustment') || String(m.meal_time||'').toLowerCase() === 'anytime';
-  const realMeals = today.filter(m => !isAdjustment(m));
+  // Klein Method rows show portions and prep, never macro numbers.
+  const isKlein = m => MB.isKleinRow(m);
+  const isKleinFat = m => isKlein(m) && String(m.notes).indexOf('klein-fat') === 0;
+  const kleinDay = today.some(isKlein);
+  const kleinFats = today.filter(isKleinFat);
+
+  const isAdjustment = m => !isKlein(m) && ((m.notes === 'coach adjustment') || String(m.meal_time||'').toLowerCase() === 'anytime');
+  const realMeals = today.filter(m => !isAdjustment(m) && !isKleinFat(m));
   const adjustments = today.filter(isAdjustment);
 
   const totals = today.reduce((a,m)=>({
@@ -599,7 +622,14 @@ function MealsPage({ user, profile }) {
       <div className="greeting-day">Your Plan</div>
       <div className="greeting-name">{isWeekPlan ? weekdays[todayIdx] + "'s Meals" : "Today's Meals"}</div>
 
-      {today.length>0 && (
+      {kleinDay && (
+        <div className="kl-banner">
+          <div className="kl-banner-head">Klein Method</div>
+          Portions, not numbers. Weigh the protein and the carb cooked, eat the vegetables, stop at your fat servings.
+        </div>
+      )}
+
+      {today.length>0 && !kleinDay && (
         <div className="stats-row four" style={{marginBottom:16}}>
           <div className="stat-card"><div className="stat-num">{totals.cal}</div><div className="stat-label">Calories</div></div>
           <div className="stat-card"><div className="stat-num">{totals.pro}g</div><div className="stat-label">Protein</div></div>
@@ -608,7 +638,7 @@ function MealsPage({ user, profile }) {
         </div>
       )}
 
-      {today.length>0 && hasTargets && (
+      {today.length>0 && hasTargets && !kleinDay && (
         <div className="target-strip">
           {[['Cal', totals.cal, profile.target_calories],
             ['Protein', totals.pro, profile.target_protein],
@@ -627,8 +657,32 @@ function MealsPage({ user, profile }) {
       {!loading && today.length===0 && <div className="loading">No meal plan assigned yet. Coach Billy will add yours soon.</div>}
 
       {realMeals.map(m=>{
-        const match = MB.recipeForPlanRow(lib, m);
         const open = openId === m.id;
+        if (isKlein(m)) {
+          const lines = MB.kleinRowLines(m);
+          const main = lines.length > 1;
+          return (
+            <div key={m.id} className={`meal-wrap${open?' open':''}`}>
+              <div className={`meal-item${main?' has-recipe':''}`} onClick={()=>main && setOpenId(open ? null : m.id)}>
+                <div className="meal-time">{m.meal_time}</div>
+                <div style={{flex:1}}>
+                  <div className="meal-name">{m.meal_name}</div>
+                  {!main && lines[0] && <div className="meal-macros">{lines[0]}</div>}
+                  {main && <div className="meal-open-hint">{open ? 'Hide the how-to' : 'Tap for the how-to'}</div>}
+                </div>
+                {main && <i className={`ti ti-chevron-down meal-chevron${open?' open':''}`}/>}
+              </div>
+              {open && main && (
+                <div className="recipe-detail">
+                  <ul className="recipe-list" style={{marginTop:2}}>
+                    {lines.map((l,i)=><li key={i}>{l}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        }
+        const match = MB.recipeForPlanRow(lib, m);
         return (
           <div key={m.id} className={`meal-wrap${open?' open':''}`}>
             <div className={`meal-item${match?' has-recipe':''}`} onClick={()=>match && setOpenId(open ? null : m.id)}>
@@ -646,6 +700,14 @@ function MealsPage({ user, profile }) {
           </div>
         );
       })}
+
+      {kleinFats.map(m=>(
+        <div key={m.id} className="plan-adjust" style={{marginTop:12}}>
+          <div className="plan-adjust-head">Healthy fats today</div>
+          <div className="plan-adjust-row"><span>{m.meal_name}</span></div>
+          <div className="recipe-fine" style={{marginTop:4}}>{MB.kleinRowLines(m)[0]}</div>
+        </div>
+      ))}
 
       {adjustments.length>0 && (
         <div className="plan-adjust" style={{marginTop:12}}>
@@ -1387,6 +1449,220 @@ function ToolsPage({ user, profile }) {
     );
   }
 
+  // ---------------------------------------------------------------- Klein Method
+  // Whole foods by the ounce: portions from bodyweight, no recipes, no macro math.
+  function KleinMethod() {
+    const [weight, setWeight] = useState(profile?.current_weight || '');
+    const [goal, setGoal] = useState('hold');
+    const [snacks, setSnacks] = useState(2);
+    const [off, setOff] = useState({});            // foods the client will not eat
+    const [portions, setPortions] = useState(null);
+    const [day, setDay] = useState(null);
+    const [seed, setSeed] = useState(1);
+    const [error, setError] = useState('');
+    const [sent, setSent] = useState(false);
+    const [sending, setSending] = useState(false);
+
+    const excluded = () => Object.keys(off).filter(k => off[k]);
+    function toggle(key) { setOff(o => ({...o, [key]: !o[key]})); setDay(null); }
+
+    function show() {
+      const p = MB.kleinPortions(weight, goal);
+      if (!p.ok) { setError(p.error); setPortions(null); setDay(null); return; }
+      setError(''); setPortions(p); setDay(null); setSent(false);
+    }
+
+    function build(nextSeed) {
+      const s = nextSeed == null ? seed : nextSeed; setSeed(s);
+      const d = MB.buildKleinDay(weight, {goal, snacks, seed: s, exclude: excluded()});
+      if (d.error) { setError(d.error); setDay(null); return; }
+      setError(''); setPortions(d.portions); setDay(d); setSent(false);
+    }
+
+    async function sendPlan() {
+      if (!day) return;
+      setSending(true);
+      const p = day.portions;
+      try {
+        await sb.from('plan_requests').insert({
+          user_id: user.id,
+          targets: { method: 'klein', weightLbs: p.weightLbs, goal: p.goal, goalLabel: p.goalLabel,
+                     proteinOz: p.proteinOz, carbOz: p.carbOz, fatServings: p.fatServings,
+                     snacks: Number(snacks), exclude: excluded() },
+          plan: Object.assign(MB.kleinDayToJson(day), { estimate: day.estimate })
+        });
+      } catch (e) { /* table may not exist yet; the message below still gets through */ }
+
+      const lines = [
+        'KLEIN METHOD DAY PLAN', '',
+        'Weight: ' + Math.round(p.weightLbs) + ' lbs (' + p.bandLabel + ') | Portions: ' + p.goalLabel,
+        'Per main meal: ' + p.proteinOz + ' oz protein, ' + p.carbOz + ' oz carbs, vegetables ' + p.vegText,
+        'Healthy fats: ' + p.fatServings + ' servings a day', ''
+      ];
+      const all = day.meals.map(m => ({t: m.time, x: m.text})).concat(day.snacks.map(s => ({t: s.time, x: s.food.name})));
+      all.sort((a,b) => mealTimeMinutes(a.t) - mealTimeMinutes(b.t)).forEach(r => lines.push('  ' + r.t + ': ' + r.x));
+      lines.push('  ' + day.fatText, '',
+        'Rough estimate for your eyes only: ' + day.estimate.calories + ' cal, ' + day.estimate.protein + 'P / ' +
+          day.estimate.carbs + 'C / ' + day.estimate.fat + 'F (' + day.estimate.fatPct + '% fat)',
+        '', 'Sent for your approval.');
+      await sendToCoach(lines.join('\n'));
+      setSending(false); setSent(true);
+    }
+
+    return (
+      <ToolCard icon="ti-scale" title="Klein Method" subtitle="Whole foods by the ounce. No recipes, no macro math.">
+        <div className="kl-intro">
+          Three main meals built from a lean protein, a carb, and vegetables, with lean protein snacks in between.
+          You weigh the protein and the carb cooked, eat the vegetables freely, and that's the whole system.
+        </div>
+        <div className="tool-grid">
+          <div className="tool-field">
+            <label>Bodyweight (lbs)</label>
+            <input type="number" placeholder="0" value={weight} onChange={e=>{setWeight(e.target.value); setDay(null);}}/>
+          </div>
+          <div className="tool-field">
+            <label>Portions</label>
+            <select value={goal} onChange={e=>{setGoal(e.target.value); setDay(null);}}>
+              {MB.KLEIN_GOALS.map(g=><option key={g.key} value={g.key}>{g.label}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="tool-field">
+          <label>Snacks between meals</label>
+          <select value={snacks} onChange={e=>{setSnacks(Number(e.target.value)); setDay(null);}}>
+            <option value="2">2 snacks — 5 times a day at the table</option>
+            <option value="3">3 snacks — 6 times a day</option>
+            <option value="4">4 snacks — 7 times a day</option>
+          </select>
+        </div>
+
+        <div className="tool-field">
+          <label>Proteins — tap off anything you won't eat</label>
+          <div className="chip-row">
+            {MB.KLEIN_PROTEINS.map(f=>(
+              <button key={f.key} className={`food-chip${off[f.key]?' off':''}`} onClick={()=>toggle(f.key)}>{f.name}</button>
+            ))}
+          </div>
+        </div>
+        <div className="tool-field">
+          <label>Carbs</label>
+          <div className="chip-row">
+            {MB.KLEIN_CARBS.map(f=>(
+              <button key={f.key} className={`food-chip${off[f.key]?' off':''}`} onClick={()=>toggle(f.key)}>{f.name}</button>
+            ))}
+          </div>
+        </div>
+
+        <button className="calc-btn" onClick={show}>Show My Portions</button>
+        {error && <div className="tool-error">{error}</div>}
+
+        {portions && (
+          <div className="bp-result">
+            <div className="bp-step-head">Every main meal — {portions.bandLabel}</div>
+            <div className="macro-grid" style={{marginTop:8}}>
+              <div className="macro-card">
+                <div className="macro-num">{portions.proteinOz}<span>oz</span></div>
+                <div className="macro-label">Protein</div>
+                <div className="macro-sub">weighed cooked</div>
+              </div>
+              <div className="macro-card">
+                <div className="macro-num">{portions.carbOz}<span>oz</span></div>
+                <div className="macro-label">Carbs</div>
+                <div className="macro-sub">weighed cooked</div>
+              </div>
+              <div className="macro-card">
+                <div className="macro-num kl-veg">{portions.vegCups < 1 ? '1/2' : portions.vegCups === 1.5 ? '1 1/2' : '1+'}<span>cup{portions.vegCups < 1 ? '' : 's'}</span></div>
+                <div className="macro-label">Vegetables</div>
+                <div className="macro-sub">or more, unweighed</div>
+              </div>
+            </div>
+            <div className="formula-grid">
+              <div className="formula-cell"><span>Healthy fats / day</span><b>{portions.fatServings} servings</b></div>
+              <div className="formula-cell"><span>Times you eat</span><b>{3 + Number(snacks)} a day</b></div>
+            </div>
+            {portions.belowTable && (
+              <div className="flag note">
+                <div className="flag-title"><i className="ti ti-info-circle"/> Under the chart</div>
+                <div className="flag-body">The portion chart starts at 150 lbs. These are the smallest portions on it. Coach Billy may trim them for you.</div>
+              </div>
+            )}
+            <div className="split-hint">
+              Oatmeal and grits are the exception: never weigh them cooked, use the dry serving on the package.
+              A fat serving is 1 tbsp olive oil, a quarter avocado, a small handful of raw nuts, or 1 tsp natural nut butter.
+            </div>
+            <button className="calc-btn" onClick={()=>build(seed)}>{day ? 'Rebuild' : 'Build My Day'}</button>
+          </div>
+        )}
+
+        {day && (
+          <div className="plan-day">
+            <div className="plan-head">
+              <div className="fit-badge dialed">Klein day</div>
+              <button className="shuffle-btn" onClick={()=>build(seed+1)}><i className="ti ti-refresh"/> Different day</button>
+            </div>
+            {day.meals.map(m=>({time:m.time, slot:m.slot, name:m.text, lines:m.lines}))
+              .concat(day.snacks.map(s=>({time:s.time, slot:'snack', name:s.food.name, lines:[]})))
+              .sort((a,b)=>mealTimeMinutes(a.time)-mealTimeMinutes(b.time))
+              .map((r,i)=>(
+              <div key={i} className="plan-meal">
+                <div className="plan-slot">{r.time}</div>
+                <div className="plan-meal-body">
+                  <div className="plan-name">{r.name}</div>
+                  {r.lines.map((l,j)=><div key={j} className="kl-line">{l}</div>)}
+                </div>
+              </div>
+            ))}
+            <div className="plan-adjust">
+              <div className="plan-adjust-head">Healthy fats today</div>
+              <div className="plan-adjust-row"><span>{day.fatText}</span></div>
+            </div>
+            <button className="send-coach-btn" onClick={sendPlan} disabled={sending || sent}>
+              <i className="ti ti-send"/> {sending ? 'Sending…' : sent ? 'Sent to Coach Billy' : 'Send to Coach Billy for Approval'}
+            </button>
+            {sent && <div className="sent-msg">Coach Billy has it. Nothing changes on your Meals tab until he approves it.</div>}
+          </div>
+        )}
+      </ToolCard>
+    );
+  }
+
+  // Klein's ten-second label test.
+  function LabelCheck() {
+    const [cal, setCal] = useState('');
+    const [fat, setFat] = useState('');
+    const [res, setRes] = useState(null);
+
+    function check() { setRes(MB.fatCheck(cal, fat)); }
+
+    return (
+      <ToolCard icon="ti-barcode" title="Label Check" subtitle="Does this food pass the 25% fat test?">
+        <div className="kl-intro">
+          Grab the nutrition label. Fat grams times 9, divided by total calories. Under 25% and it belongs in your rotation.
+        </div>
+        <div className="tool-grid">
+          <div className="tool-field">
+            <label>Calories per serving</label>
+            <input type="number" placeholder="450" value={cal} onChange={e=>{setCal(e.target.value); setRes(null);}}/>
+          </div>
+          <div className="tool-field">
+            <label>Total fat (g)</label>
+            <input type="number" placeholder="11" value={fat} onChange={e=>{setFat(e.target.value); setRes(null);}}/>
+          </div>
+        </div>
+        <button className="calc-btn" onClick={check}>Check It</button>
+        {res && !res.ok && <div className="tool-error">{res.error}</div>}
+        {res && res.ok && (
+          <div className={`verdict ${res.key}`}>
+            <div className="verdict-pct">{res.pct}%<span> fat</span></div>
+            <div className="verdict-label">{res.label}</div>
+            <div className="verdict-meaning">{res.meaning}</div>
+            <div className="verdict-math">{fat} g × 9 = {res.fatCalories} fat calories, out of {cal}.</div>
+          </div>
+        )}
+      </ToolCard>
+    );
+  }
+
   // Quick Method
   function QuickCalc() {
     const [weight, setWeight] = useState('');
@@ -1888,6 +2164,9 @@ function ToolsPage({ user, profile }) {
       <div className="greeting-day">Coach Billy's Toolkit</div>
       <div className="greeting-name">Macros &amp; Meal Plans</div>
       <MacroBlueprint/>
+      <div className="tool-section-label">Rather skip the recipes and the math?</div>
+      <KleinMethod/>
+      <LabelCheck/>
       <div className="tool-section-label">Single formulas, if you want to see the math</div>
       <QuickCalc/>
       <MifflinCalc/>

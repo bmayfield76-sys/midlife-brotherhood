@@ -960,6 +960,282 @@ function loadLibrary(sb, cb) {
    recipes table, where only signed-in clients can read them. */
 var RECIPES = [];
 
+/* ============================================================ Klein Method == */
+/* Whole foods by the ounce, no recipes and no macro tracking. Portions come
+   from bodyweight, fat is managed by picking foods under 25% fat, and the day
+   is three main meals plus lean protein snacks. From the Klein Method bonus
+   chapter of The Long Game, with gratitude to Keith Klein CN, CCN.           */
+
+/* Portions per main meal, by bodyweight. Carbs are a range in the protocol. */
+var KLEIN_BANDS = [
+  { key: 'light',  min: 0,   max: 180,  label: '150 to 180 lbs',    proteinOz: 5, carbOz: [4, 6], vegCups: 0.5, vegText: '1/2 cup or more' },
+  { key: 'middle', min: 180, max: 200,  label: '180 to 200 lbs',    proteinOz: 6, carbOz: [5, 7], vegCups: 1.25, vegText: '1 to 1 1/2 cups or more' },
+  { key: 'heavy',  min: 200, max: 9999, label: '200 lbs and above', proteinOz: 7, carbOz: [6, 8], vegCups: 1.5, vegText: '1 1/2 cups or more' }
+];
+
+/* The protocol gives carbs as a range and fats as 2 to 3 servings. The setting
+   picks where in those ranges to sit. These are deliberately not named after
+   goals: Klein portions run well under maintenance for a big or active man at
+   every setting, so calling one "hold" or "build" would promise something the
+   food does not deliver. Snacks are the other lever.                         */
+var KLEIN_GOALS = [
+  { key: 'lean',  label: 'Tighter',  hint: 'Low end of the carb range, 2 fat servings a day.', carbAt: 0,   fatServings: 2 },
+  { key: 'hold',  label: 'Standard', hint: 'Middle of the carb range, 3 fat servings a day.',  carbAt: 0.5, fatServings: 3 },
+  { key: 'build', label: 'Fuller',   hint: 'Top of the carb range, 3 fat servings a day.',     carbAt: 1,   fatServings: 3 }
+];
+function kleinGoal(k) {
+  for (var i = 0; i < KLEIN_GOALS.length; i++) if (KLEIN_GOALS[i].key === k) return KLEIN_GOALS[i];
+  return KLEIN_GOALS[1];
+}
+
+function kleinBand(weightLbs) {
+  var w = parseFloat(weightLbs);
+  for (var i = 0; i < KLEIN_BANDS.length; i++) if (w >= KLEIN_BANDS[i].min && w < KLEIN_BANDS[i].max) return KLEIN_BANDS[i];
+  return KLEIN_BANDS[KLEIN_BANDS.length - 1];
+}
+
+/* kleinPortions(weightLbs, goalKey) -> what goes on the plate at each main meal */
+function kleinPortions(weightLbs, goalKey) {
+  var w = parseFloat(weightLbs);
+  if (!(w >= 80 && w <= 700)) return { ok: false, error: 'Weight has to be between 80 and 700 lbs.' };
+  var band = kleinBand(w), goal = kleinGoal(goalKey);
+  var carbOz = Math.round(band.carbOz[0] + (band.carbOz[1] - band.carbOz[0]) * goal.carbAt);
+  return {
+    ok: true, weightLbs: w, band: band.key, bandLabel: band.label,
+    goal: goal.key, goalLabel: goal.label,
+    proteinOz: band.proteinOz, carbOz: carbOz, carbRange: band.carbOz.slice(),
+    vegCups: band.vegCups, vegText: band.vegText,
+    fatServings: goal.fatServings,
+    belowTable: w < 150
+  };
+}
+
+/* The ten-second label test: fat grams x 9, divided by total calories. */
+function fatCheck(calories, fatGrams) {
+  var cal = parseFloat(calories), fat = parseFloat(fatGrams);
+  if (!(cal > 0) || !(fat >= 0)) return { ok: false, error: 'Enter the calories and the fat grams off the label.' };
+  if (fat * 9 > cal * 1.15) return { ok: false, error: 'Those fat grams add up to more calories than the label lists. Check the numbers.' };
+  var pct = Math.min(100, (fat * 9 / cal) * 100), v;
+  if (pct < 20)       v = { key: 'excellent', label: 'Excellent',        meaning: 'Clean protein or carb source. Eat freely within your portions.' };
+  else if (pct <= 25) v = { key: 'ok',        label: 'Acceptable',       meaning: 'Fine as a regular part of the rotation.' };
+  else if (pct <= 30) v = { key: 'sparingly', label: 'Use sparingly',    meaning: 'Not a daily staple. Occasional and in moderation.' };
+  else                v = { key: 'avoid',     label: 'Avoid as a staple', meaning: 'Too fat-dense for this protocol as a regular food.' };
+  return { ok: true, pct: Math.round(pct), fatCalories: Math.round(fat * 9), key: v.key, label: v.label, meaning: v.meaning };
+}
+
+/* Approved foods. Macros are per cooked ounce (standard food data) and exist
+   only so the coach can see a rough daily estimate. The client never tracks
+   them. weeklyMax caps the higher-fat proteins per the protocol.             */
+var KLEIN_PROTEINS = [
+  { key: 'chicken',  name: 'chicken breast',       meals: 'ld',  cal: 47, p: 8.8, c: 0,   f: 1.0, prep: 'Grill, bake, or air-fry. Season with salt, pepper, garlic, or any dry rub with no sugar or oil.' },
+  { key: 'turkey',   name: 'ground turkey breast', meals: 'bld', cal: 38, p: 8.4, c: 0,   f: 0.5, prep: 'Brown in a non-stick pan with cooking spray. Season hard; it is lean and needs it.' },
+  { key: 'whitefish',name: 'white fish (tilapia or cod)', meals: 'ld', cal: 33, p: 7.0, c: 0, f: 0.5, prep: 'Bake or pan-sear with cooking spray. Lemon, salt, pepper, any dry seasoning.' },
+  { key: 'shrimp',   name: 'shrimp',               meals: 'ld',  cal: 28, p: 6.8, c: 0.1, f: 0.1, prep: 'Saute with cooking spray or grill. Garlic, lemon, chili flakes.' },
+  { key: 'eggwhite', name: 'egg whites',           meals: 'b',   cal: 15, p: 3.1, c: 0.2, f: 0,   prep: 'Scramble in a non-stick pan with cooking spray. One large white is about an ounce.' },
+  { key: 'salmon',   name: 'salmon',               meals: 'ld',  cal: 58, p: 6.3, c: 0,   f: 3.5, weeklyMax: 2, note: 'Higher fat, but the omega-3s earn it. Two or three times a week.', prep: 'Bake or grill skin-side down. Salt, pepper, lemon.' },
+  { key: 'leanbeef', name: 'lean beef (93% or leaner)', meals: 'ld', cal: 52, p: 7.4, c: 0, f: 2.3, weeklyMax: 2, note: 'Borderline on fat. Use sparingly or buy extra-lean.', prep: 'Brown and drain, or grill as a patty. Salt, pepper, garlic.' }
+];
+
+/* fixed: cooked cereals are NOT weighed. Use the dry serving on the package. */
+var KLEIN_CARBS = [
+  { key: 'potato',      name: 'baked potato',       meals: 'bld', cal: 26, p: 0.7, c: 6.0, f: 0,   prep: 'Bake or microwave, weigh after cooking. Salt, pepper, butter-flavor seasoning.' },
+  { key: 'sweetpotato', name: 'sweet potato',       meals: 'bld', cal: 26, p: 0.6, c: 5.9, f: 0,   prep: 'Bake or microwave, weigh after cooking. Cinnamon or salt.' },
+  { key: 'rice',        name: 'rice (white or brown)', meals: 'ld', cal: 36, p: 0.8, c: 7.8, f: 0.1, prep: 'Batch cook for the week and weigh it cooked.' },
+  { key: 'beans',       name: 'beans',              meals: 'ld',  cal: 37, p: 2.5, c: 6.7, f: 0.2, prep: 'Canned is fine. Rinse, heat, weigh.' },
+  { key: 'fruit',       name: 'fresh fruit',        meals: 'b',   cal: 17, p: 0.2, c: 4.3, f: 0.1, prep: 'Weigh it fresh. It takes the place of the carb portion.' },
+  { key: 'oatmeal',     name: 'oatmeal',            meals: 'b',   fixed: 'one package serving (1/2 cup dry)', cal: 150, p: 5, c: 27, f: 3,   prep: 'Do not weigh it cooked. Measure the dry serving on the package.' },
+  { key: 'grits',       name: 'grits',              meals: 'b',   fixed: 'one package serving (1/4 cup dry)', cal: 130, p: 3, c: 29, f: 0.5, prep: 'Do not weigh it cooked. Measure the dry serving on the package.' }
+];
+
+var KLEIN_SNACKS = [
+  { key: 'yogurt',  name: 'Nonfat Greek yogurt, 1 cup',     cal: 130, p: 23, c: 9, f: 0 },
+  { key: 'cottage', name: 'Low-fat cottage cheese, 1 cup',  cal: 163, p: 28, c: 6, f: 2 },
+  { key: 'shake',   name: 'Protein shake, 1 scoop in water', cal: 120, p: 25, c: 2, f: 1 },
+  { key: 'whites',  name: 'Egg whites, 1 cup scrambled',    cal: 126, p: 26, c: 2, f: 0 }
+];
+
+var KLEIN_FATS = [
+  { key: 'oil',     name: '1 tbsp olive oil',        cal: 119, p: 0, c: 0, f: 14 },
+  { key: 'avocado', name: '1/4 avocado',             cal: 80,  p: 1, c: 4, f: 7 },
+  { key: 'nuts',    name: 'a small handful of raw nuts', cal: 125, p: 4, c: 4, f: 11 },
+  { key: 'nutbutter', name: '1 tsp natural nut butter', cal: 33, p: 1, c: 1, f: 3 }
+];
+var KLEIN_VEG_PER_CUP = { cal: 35, p: 2, c: 7, f: 0 };
+
+function kleinFind(list, key) {
+  for (var i = 0; i < list.length; i++) if (list[i].key === key) return list[i];
+  return null;
+}
+
+var KLEIN_SLOTS = [
+  { slot: 'breakfast', code: 'b', time: '7am' },
+  { slot: 'lunch',     code: 'l', time: '12pm' },
+  { slot: 'dinner',    code: 'd', time: '6:30pm' }
+];
+var KLEIN_SNACK_TIMES = { 2: ['10am', '3pm'], 3: ['10am', '3pm', '8:30pm'], 4: ['9:30am', '2:30pm', '4:30pm', '8:30pm'] };
+
+/* Estimate one main meal. Rough on purpose: the method does not track this. */
+function kleinMealEstimate(pr, cb, por) {
+  var est = { calories: pr.cal * por.proteinOz, protein: pr.p * por.proteinOz, carbs: pr.c * por.proteinOz, fat: pr.f * por.proteinOz };
+  var cMult = cb.fixed ? 1 : por.carbOz;
+  est.calories += cb.cal * cMult; est.protein += cb.p * cMult; est.carbs += cb.c * cMult; est.fat += cb.f * cMult;
+  est.calories += KLEIN_VEG_PER_CUP.cal * por.vegCups; est.protein += KLEIN_VEG_PER_CUP.p * por.vegCups;
+  est.carbs += KLEIN_VEG_PER_CUP.c * por.vegCups;
+  return { calories: r0(est.calories), protein: r0(est.protein), carbs: r0(est.carbs), fat: r0(est.fat) };
+}
+
+function kleinMealText(m, por) {
+  var carb = m.carb.fixed ? m.carb.name + ', ' + m.carb.fixed : por.carbOz + ' oz ' + m.carb.name;
+  return por.proteinOz + ' oz ' + m.protein.name + ' + ' + carb + ' + vegetables';
+}
+
+/* Fill in text and estimates after any change to a Klein day. */
+function kleinRecompute(day) {
+  var por = day.portions, tot = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  function add(e) { tot.calories += e.calories; tot.protein += e.protein; tot.carbs += e.carbs; tot.fat += e.fat; }
+  day.meals.forEach(function (m) {
+    m.protein = kleinFind(KLEIN_PROTEINS, m.proteinKey) || KLEIN_PROTEINS[0];
+    m.carb = kleinFind(KLEIN_CARBS, m.carbKey) || KLEIN_CARBS[0];
+    m.text = kleinMealText(m, por);
+    m.lines = [
+      por.proteinOz + ' oz ' + m.protein.name + ', weighed cooked. ' + m.protein.prep,
+      (m.carb.fixed ? m.carb.name.charAt(0).toUpperCase() + m.carb.name.slice(1) + ': ' + m.carb.fixed + '. ' : por.carbOz + ' oz ' + m.carb.name + '. ') + m.carb.prep,
+      'Vegetables: ' + por.vegText + ', any non-starchy kind. Do not weigh them, just eat them.'
+    ];
+    m.est = kleinMealEstimate(m.protein, m.carb, por);
+    add(m.est);
+  });
+  day.snacks.forEach(function (s) {
+    s.food = kleinFind(KLEIN_SNACKS, s.key) || KLEIN_SNACKS[0];
+    s.est = { calories: s.food.cal, protein: s.food.p, carbs: s.food.c, fat: s.food.f };
+    add(s.est);
+  });
+  var fatEst = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  day.fats.forEach(function (k) {
+    var f = kleinFind(KLEIN_FATS, k) || KLEIN_FATS[0];
+    fatEst.calories += f.cal; fatEst.protein += f.p; fatEst.carbs += f.c; fatEst.fat += f.f;
+  });
+  day.fatEst = fatEst; add(fatEst);
+  day.fatText = por.fatServings + ' healthy fat servings across the day: ' +
+    day.fats.map(function (k) { return (kleinFind(KLEIN_FATS, k) || KLEIN_FATS[0]).name; }).join(', ') + '.';
+  day.estimate = { calories: r0(tot.calories), protein: r0(tot.protein), carbs: r0(tot.carbs), fat: r0(tot.fat) };
+  day.estimate.fatPct = tot.calories ? Math.round(tot.fat * 9 / tot.calories * 100) : 0;
+  return day;
+}
+
+/* buildKleinDay(weightLbs, opts) -> { method:'klein', portions, meals, snacks, fats, estimate }
+   opts: { goal, snacks (2-4), seed, exclude: [food keys], weekUse: {key:count} } */
+function buildKleinDay(weightLbs, opts) {
+  opts = opts || {};
+  var por = kleinPortions(weightLbs, opts.goal);
+  if (!por.ok) return { error: por.error };
+  var rnd = mulberry32(opts.seed == null ? 1 : opts.seed);
+  var exclude = {}, weekUse = opts.weekUse || {}, usedToday = {}, richToday = false;
+  (opts.exclude || []).forEach(function (k) { exclude[k] = 1; });
+
+  function pick(list, code, lastKey) {
+    var pool = list.filter(function (f) {
+      if (exclude[f.key] || f.meals.indexOf(code) < 0) return false;
+      if (f.weeklyMax != null && (weekUse[f.key] || 0) >= f.weeklyMax) return false;
+      if (f.weeklyMax != null && richToday) return false;   /* one higher-fat protein a day, tops */
+      return true;
+    });
+    if (!pool.length) return null;
+    /* prefer what has not been eaten today, then what was used least this week */
+    var fresh = pool.filter(function (f) { return !usedToday[f.key] && f.key !== lastKey; });
+    var from = shuffled(fresh.length ? fresh : pool, rnd);
+    from.sort(function (a, b) { return (weekUse[a.key] || 0) - (weekUse[b.key] || 0); });
+    var top = from.filter(function (f) { return (weekUse[f.key] || 0) === (weekUse[from[0].key] || 0); });
+    return top[Math.floor(rnd() * top.length)];
+  }
+
+  var meals = [], missing = null;
+  KLEIN_SLOTS.forEach(function (sl) {
+    var pr = pick(KLEIN_PROTEINS, sl.code), cb = pick(KLEIN_CARBS, sl.code);
+    if (!pr || !cb) { missing = sl.slot; return; }
+    usedToday[pr.key] = 1; usedToday[cb.key] = 1;
+    if (pr.weeklyMax != null) richToday = true;
+    weekUse[pr.key] = (weekUse[pr.key] || 0) + 1; weekUse[cb.key] = (weekUse[cb.key] || 0) + 1;
+    meals.push({ slot: sl.slot, time: sl.time, proteinKey: pr.key, carbKey: cb.key });
+  });
+  if (missing) return { error: 'Not enough foods left for ' + missing + '. Turn a protein and a carb back on.' };
+
+  var nSnacks = Math.max(2, Math.min(4, parseInt(opts.snacks, 10) || 2));
+  var snackPool = shuffled(KLEIN_SNACKS.filter(function (s) { return !exclude[s.key]; }), rnd);
+  if (!snackPool.length) snackPool = KLEIN_SNACKS.slice();
+  var times = KLEIN_SNACK_TIMES[nSnacks], snacks = [];
+  for (var i = 0; i < nSnacks; i++) snacks.push({ time: times[i], key: snackPool[i % snackPool.length].key });
+
+  var fatPool = shuffled(KLEIN_FATS, rnd), fats = [];
+  for (var j = 0; j < por.fatServings; j++) fats.push(fatPool[j % fatPool.length].key);
+
+  return kleinRecompute({ method: 'klein', portions: por, meals: meals, snacks: snacks, fats: fats });
+}
+
+function buildKleinWeek(weightLbs, opts) {
+  opts = opts || {};
+  var days = [], weekUse = {};
+  for (var d = 0; d < (opts.days || 7); d++) {
+    var day = buildKleinDay(weightLbs, { goal: opts.goal, snacks: opts.snacks, exclude: opts.exclude,
+                                         seed: (opts.seed || 1) * 131 + d, weekUse: weekUse });
+    if (day.error) return { error: day.error };
+    days.push(day);
+  }
+  return { days: days };
+}
+
+function cloneKleinDay(day) {
+  return {
+    method: 'klein', portions: day.portions,
+    meals: day.meals.map(function (m) { return { slot: m.slot, time: m.time, proteinKey: m.proteinKey, carbKey: m.carbKey }; }),
+    snacks: day.snacks.map(function (s) { return { time: s.time, key: s.key }; }),
+    fats: day.fats.slice()
+  };
+}
+
+/* Small enough to store in a plan request and rebuild later. */
+function kleinDayToJson(day) {
+  var c = cloneKleinDay(day);
+  return { method: 'klein', weightLbs: day.portions.weightLbs, goal: day.portions.goal,
+           meals: c.meals, snacks: c.snacks, fats: c.fats };
+}
+function kleinDayFromJson(j) {
+  var por = kleinPortions(j.weightLbs, j.goal);
+  if (!por.ok) return null;
+  return kleinRecompute({ method: 'klein', portions: por,
+    meals: (j.meals || []).map(function (m) { return { slot: m.slot, time: m.time, proteinKey: m.proteinKey, carbKey: m.carbKey }; }),
+    snacks: (j.snacks || []).map(function (s) { return { time: s.time, key: s.key }; }),
+    fats: (j.fats || []).slice() });
+}
+
+/* Rows for meal_plans. notes starts with "klein" so the client page shows
+   portions and prep instead of macro numbers. The numbers stored are the
+   rough estimate, there for the coach.                                       */
+var KLEIN_NOTE = 'klein';
+function kleinDayToPlanRows(day, userId, dayOfWeek) {
+  var rows = [], order = 0, dow = dayOfWeek == null ? null : dayOfWeek;
+  function row(time, name, est, notes) {
+    rows.push({ user_id: userId, meal_time: time, meal_name: name,
+      protein: r0(est.protein), carbs: r0(est.carbs), fat: r0(est.fat), calories: r0(est.calories),
+      recipe_id: null, servings: 1, day_of_week: dow, sort_order: order++, notes: notes });
+  }
+  var all = [];
+  day.meals.forEach(function (m) { all.push({ time: m.time, name: m.text, est: m.est, notes: KLEIN_NOTE + '|' + m.lines.join('|') }); });
+  day.snacks.forEach(function (s) { all.push({ time: s.time, name: s.food.name, est: s.est, notes: KLEIN_NOTE + '|Lean protein snack. Keeps you fed between meals without adding fat.' }); });
+  all.sort(function (a, b) { return kleinClock(a.time) - kleinClock(b.time); });
+  all.forEach(function (x) { row(x.time, x.name, x.est, x.notes); });
+  row('anytime', day.fatText, day.fatEst, KLEIN_NOTE + '-fat|Spread these across the day. Not tracked, just capped.');
+  return rows;
+}
+function kleinClock(t) {
+  var m = String(t).match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/i);
+  if (!m) return 9999;
+  var h = parseInt(m[1], 10) % 12 + (m[3].toLowerCase() === 'pm' ? 12 : 0);
+  return h * 60 + (m[2] ? parseInt(m[2], 10) : 0);
+}
+function isKleinRow(row) { return typeof row.notes === 'string' && row.notes.indexOf(KLEIN_NOTE) === 0; }
+function kleinRowLines(row) { return isKleinRow(row) ? row.notes.split('|').slice(1) : []; }
+
 /* ------------------------------------------------------------- exports ---- */
 global.MB = {
   /* units */
@@ -979,7 +1255,14 @@ global.MB = {
   parseRecipes: parseRecipes, macroCheck: macroCheck, portionText: portionText,
   scaleIngredient: scaleIngredient, niceAmount: niceAmount, recipeForPlanRow: recipeForPlanRow,
   loadLibrary: loadLibrary, normalizeRow: normalizeRow,
-  recomputeDay: recomputeDay, cloneDay: cloneDay, poolFor: poolFor
+  recomputeDay: recomputeDay, cloneDay: cloneDay, poolFor: poolFor,
+  /* Klein Method */
+  KLEIN_BANDS: KLEIN_BANDS, KLEIN_GOALS: KLEIN_GOALS, KLEIN_PROTEINS: KLEIN_PROTEINS, KLEIN_CARBS: KLEIN_CARBS,
+  KLEIN_SNACKS: KLEIN_SNACKS, KLEIN_FATS: KLEIN_FATS,
+  kleinPortions: kleinPortions, kleinBand: kleinBand, fatCheck: fatCheck,
+  buildKleinDay: buildKleinDay, buildKleinWeek: buildKleinWeek, kleinRecompute: kleinRecompute,
+  cloneKleinDay: cloneKleinDay, kleinDayToJson: kleinDayToJson, kleinDayFromJson: kleinDayFromJson,
+  kleinDayToPlanRows: kleinDayToPlanRows, isKleinRow: isKleinRow, kleinRowLines: kleinRowLines
 };
 
 })(typeof window !== 'undefined' ? window : this);

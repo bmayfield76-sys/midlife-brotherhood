@@ -46,6 +46,18 @@ Or start from scratch: pick a client, check his numbers, hit **Run Numbers**, th
 
 **Custom.** Type any three percentages for a special case. The guardrails still fire: protein past 1.6 g per pound, fat under 20 percent of calories, calories under 1,500, or a deficit deeper than about 22 percent all get called out in plain English. A red flag doesn't block you. It makes sure you chose it on purpose.
 
+## The Klein Method: for the guy who won't cook recipes
+
+Some men don't want a recipe or a macro target. They want to be told what goes on the plate. That's the Klein Method from the bonus chapter of The Long Game, and it's a second plan style in the app.
+
+**How it works.** Three main meals, each a lean protein, a carb, and vegetables, with lean protein snacks in between. Portions come off Keith Klein's bodyweight chart: 5 oz of protein per main meal at 150 to 180 lbs, 6 oz at 180 to 200, 7 oz at 200 and up, with the matching carb range and vegetable amount. Protein and carbs are weighed cooked. Vegetables aren't weighed. Oatmeal and grits are the exception and use the dry serving on the package. Healthy fats are capped at 2 or 3 servings a day.
+
+**What the client does.** Tools tab, **Klein Method**. He enters his bodyweight, taps off any food he won't eat, and hits Show My Portions, then Build My Day. He gets something like "7 oz chicken breast + 7 oz baked potato + vegetables" with a one-line how-to for each. No calories, no grams. He sends it to you the same way as a macro plan. **Label Check**, right below it, is Klein's ten-second test: calories and fat grams off a label, and it tells him whether the food is under 25 percent fat.
+
+**What you do.** Plan Builder, pick the client, and flip **Plan style** to Klein Method. Build one day or seven, swap any protein, carb, or snack from the dropdowns, and assign. On a seven-day plan salmon and lean beef show up at most twice each, and never both on the same day, which is how the protocol treats the higher-fat proteins.
+
+**The numbers you see and he doesn't.** The builder shows you a rough calorie and macro estimate for each day, and if you've run his numbers before, how far under his maintenance the plan sits. Klein portions are set by bodyweight, not activity, so a big or active man lands well under maintenance on any setting. That's why the portion settings are called Tighter, Standard, and Fuller instead of cut, hold, and build. If the builder flags a hard cut, add snacks or go Fuller. His Meals tab shows ounces, cups, and how to cook it, nothing else.
+
 ## Adding another cookbook
 
 Recipes tab, **Add recipes**. Type the cookbook's name, paste a recipe or an entire chapter straight from the manuscript, and click **Read recipes**. Both of your book layouts are recognized automatically. You get a preview of every recipe it found, with a warning on any where the macros don't add up to the stated calories (usually a typo in the book). Uncheck anything you don't want, then save.
